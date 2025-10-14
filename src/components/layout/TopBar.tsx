@@ -11,8 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { mockUsers } from '@/lib/mockData';
 
 export function TopBar() {
+  const navigate = useNavigate();
+
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 gap-4">
       <div className="flex items-center gap-4 flex-1">
@@ -62,11 +66,11 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ada Admin</DropdownMenuLabel>
+            <DropdownMenuLabel>{mockUsers[0].name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/profile')}>Profile</DropdownMenuItem>
             <DropdownMenuItem>Team</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Sign out</DropdownMenuItem>
           </DropdownMenuContent>

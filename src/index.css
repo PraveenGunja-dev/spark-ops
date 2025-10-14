@@ -8,28 +8,28 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 224 15% 15%;
-
+    /* Light Mode Colors */
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 3.9%; /* Almost black */
+    
     --card: 0 0% 100%;
-    --card-foreground: 224 15% 15%;
+    --card-foreground: 0 0% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 15% 15%;
+    --popover-foreground: 0 0% 3.9%;
 
-    --primary: 237 60% 52%;
+    --primary: 151 44% 59%; /* #61CE70 Green */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 237 80% 65%;
+    --primary-glow: 151 44% 65%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 224 15% 25%;
+    --secondary: 0 0% 96.1%; /* Very light gray */
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 0 0% 96.1%; /* Very light gray */
+    --muted-foreground: 0 0% 45.1%;
 
-    --accent: 270 70% 62%;
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 270 85% 75%;
+    --accent: 0 0% 96.1%; /* Very light gray */
+    --accent-foreground: 0 0% 9%;
 
     --success: 160 70% 45%;
     --success-foreground: 0 0% 100%;
@@ -37,74 +37,74 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84.2% 60.2%; /* Red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 92%;
-    --ring: 237 60% 52%;
+    --border: 0 0% 89.8%; /* Light gray */
+    --input: 0 0% 89.8%;
+    --ring: 202 88% 47%; /* #1085e4 Blue */
 
     --radius: 0.5rem;
 
     --sidebar-background: 224 20% 12%;
     --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 237 60% 52%;
+    --sidebar-primary: 151 44% 59%; /* #61CE70 Green */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 20% 18%;
     --sidebar-accent-foreground: 220 15% 95%;
     --sidebar-border: 224 20% 20%;
-    --sidebar-ring: 237 60% 52%;
+    --sidebar-ring: 151 44% 59%; /* #61CE70 Green */
 
     /* Status colors */
     --status-queued: 45 93% 47%;
     --status-running: 217 91% 60%;
-    --status-succeeded: 160 70% 45%;
-    --status-failed: 0 72% 51%;
+    --status-succeeded: 151 44% 59%; /* #61CE70 Green */
+    --status-failed: 0 84.2% 60.2%; /* Red */
     --status-cancelled: 220 10% 50%;
     --status-timeout: 38 92% 50%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(237 60% 52%) 0%, hsl(270 70% 62%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(160 70% 45%) 0%, hsl(160 60% 55%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(237 60% 52%) 0%, hsl(270 70% 62%) 50%, hsl(237 80% 65%) 100%);
+    /* Brand Gradient: Linear gradient from #61CE70 to #1085e4 */
+    --gradient-primary: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(202 88% 47%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(160 60% 55%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(202 88% 47%) 50%, hsl(202 88% 55%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 20% 20% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 20% 20% / 0.1), 0 2px 4px -1px hsl(220 20% 20% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(220 20% 20% / 0.1), 0 4px 6px -2px hsl(220 20% 20% / 0.05);
-    --shadow-glow: 0 0 20px hsl(237 60% 52% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
+    --shadow-glow: 0 0 20px hsl(151 44% 59% / 0.3);
 
     /* Chart colors */
-    --chart-1: 237 60% 52%;
-    --chart-2: 270 70% 62%;
+    --chart-1: 151 44% 59%; /* #61CE70 Green */
+    --chart-2: 202 88% 47%; /* #1085e4 Blue */
     --chart-3: 160 70% 45%;
     --chart-4: 38 92% 50%;
-    --chart-5: 0 72% 51%;
+    --chart-5: 0 84.2% 60.2%;
   }
 
   .dark {
-    --background: 224 25% 8%;
-    --foreground: 220 15% 95%;
+    /* Dark Mode Colors */
+    --background: 0 0% 3.9%; /* Almost black */
+    --foreground: 0 0% 98%; /* Almost white */
+    
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --card: 224 20% 12%;
-    --card-foreground: 220 15% 95%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    --popover: 224 20% 12%;
-    --popover-foreground: 220 15% 95%;
-
-    --primary: 237 70% 60%;
+    --primary: 151 44% 59%; /* #61CE70 Green */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 237 80% 70%;
+    --primary-glow: 151 44% 65%;
 
-    --secondary: 224 20% 18%;
-    --secondary-foreground: 220 15% 95%;
+    --secondary: 0 0% 14.9%; /* Dark gray */
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 224 20% 16%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 0 0% 14.9%; /* Dark gray */
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 270 75% 65%;
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 270 85% 75%;
+    --accent: 0 0% 14.9%; /* Dark gray */
+    --accent-foreground: 0 0% 98%;
 
     --success: 160 75% 50%;
     --success-foreground: 0 0% 100%;
@@ -112,40 +112,40 @@ All colors MUST be HSL.
     --warning: 38 92% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 62.8% 30.6%; /* Dark red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 224 20% 20%;
-    --input: 224 20% 18%;
-    --ring: 237 70% 60%;
+    --border: 0 0% 14.9%; /* Dark gray */
+    --input: 0 0% 14.9%;
+    --ring: 202 88% 47%; /* #1085e4 Blue */
 
-    --sidebar-background: 224 25% 10%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 237 70% 60%;
+    --sidebar-background: 0 0% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 151 44% 59%; /* #61CE70 Green */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 20% 16%;
-    --sidebar-accent-foreground: 220 15% 95%;
-    --sidebar-border: 224 20% 18%;
-    --sidebar-ring: 237 70% 60%;
+    --sidebar-accent: 0 0% 14.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 151 44% 59%; /* #61CE70 Green */
 
     /* Status colors - slightly brighter for dark mode */
     --status-queued: 45 93% 55%;
     --status-running: 217 91% 65%;
-    --status-succeeded: 160 75% 50%;
-    --status-failed: 0 75% 55%;
+    --status-succeeded: 151 44% 59%; /* #61CE70 Green */
+    --status-failed: 0 62.8% 30.6%; /* Dark red */
     --status-cancelled: 220 10% 55%;
     --status-timeout: 38 92% 55%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(237 70% 60%) 0%, hsl(270 75% 65%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(160 75% 50%) 0%, hsl(160 65% 60%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(237 70% 60%) 0%, hsl(270 75% 65%) 50%, hsl(237 80% 70%) 100%);
+    /* Brand Gradient: Linear gradient from #61CE70 to #1085e4 */
+    --gradient-primary: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(202 88% 47%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(160 65% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(151 44% 59%) 0%, hsl(202 88% 47%) 50%, hsl(202 88% 55%) 100%);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -1px hsl(0 0% 0% / 0.3);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -2px hsl(0 0% 0% / 0.4);
-    --shadow-glow: 0 0 30px hsl(237 70% 60% / 0.4);
+    --shadow-glow: 0 0 30px hsl(151 44% 59% / 0.4);
   }
 }
 

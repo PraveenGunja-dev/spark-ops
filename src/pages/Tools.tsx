@@ -1,95 +1,89 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Wrench, Plus, Play } from 'lucide-react';
 import { mockTools } from '@/lib/mockData';
-import { Wrench, Database, Globe, Chrome, Search, HardDrive, Zap } from 'lucide-react';
-
-const kindIcons = {
-  http: Globe,
-  db: Database,
-  saas: Zap,
-  browser: Chrome,
-  search: Search,
-  storage: HardDrive,
-  custom: Wrench,
-};
 
 export default function Tools() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Tools</h1>
-        <p className="text-muted-foreground">Connectors and integrations</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Tools & Connectors</h1>
+          <p className="text-muted-foreground">Registry of all tools and integrations</p>
+        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Tool
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {mockTools.map((tool) => {
-          const Icon = kindIcons[tool.kind];
-          
-          return (
-            <Card key={tool.id} className="hover:shadow-md transition-smooth">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg">{tool.name}</CardTitle>
-                  </div>
-                  <Badge variant="outline">{tool.kind}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {tool.provider && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Provider</span>
-                    <span className="font-medium">{tool.provider}</span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Auth Type</span>
-                  <Badge variant="secondary" className="text-xs">{tool.authType}</Badge>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Environment</span>
-                  <Badge variant="outline" className="text-xs">{tool.env}</Badge>
-                </div>
-
-                {tool.rateLimitPerMin && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Rate Limit</span>
-                    <span className="font-mono text-xs">{tool.rateLimitPerMin}/min</span>
-                  </div>
-                )}
-
-                {tool.scopes && (
-                  <div className="pt-3 border-t">
-                    <p className="text-xs font-medium mb-2">Scopes</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tool.scopes.map(scope => (
-                        <Badge key={scope} variant="outline" className="text-xs">
-                          {scope}
-                        </Badge>
-                      ))}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tool Registry</CardTitle>
+          <CardDescription>
+            Manage all tools (MCP layer) and integrations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tool Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Auth</TableHead>
+                <TableHead>Rate Limit</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Calls / Day</TableHead>
+                <TableHead>Last Used</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockTools.map((tool) => (
+                <TableRow key={tool.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 text-muted-foreground" />
+                      {tool.name}
                     </div>
-                  </div>
-                )}
-
-                {tool.lastErrorAt && (
-                  <div className="pt-3 border-t">
-                    <p className="text-xs text-destructive">
-                      Last error: {new Date(tool.lastErrorAt).toLocaleString()}
-                    </p>
-                  </div>
-                )}
-
-                <div className="pt-3 border-t text-xs text-muted-foreground">
-                  Created {new Date(tool.createdAt).toLocaleDateString()}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{tool.kind}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={tool.authType === 'oauth' ? 'default' : 'secondary'}>
+                      {tool.authType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {tool.rateLimitPerMin ? `${tool.rateLimitPerMin}/min` : 'Unlimited'}
+                  </TableCell>
+                  <TableCell>Ada Admin</TableCell>
+                  <TableCell>1,240</TableCell>
+                  <TableCell>5 min ago</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm">
+                        <Play className="h-4 w-4 mr-1" />
+                        Test
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

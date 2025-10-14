@@ -7,14 +7,15 @@ import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Runs from "./pages/Runs";
 import RunDetails from "./pages/RunDetails";
-import Workflows from "./pages/Workflows";
 import Agents from "./pages/Agents";
 import Tools from "./pages/Tools";
-import Schedules from "./pages/Schedules";
-import Queues from "./pages/Queues";
-import Monitoring from "./pages/Monitoring";
-import Incidents from "./pages/Incidents";
+import Approvals from "./pages/Approvals";
+import Evaluations from "./pages/Evaluations";
+import Analytics from "./pages/Analytics";
+import Policies from "./pages/Policies";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Teams from "./pages/Teams.tsx";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,23 +26,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/runs" element={<Runs />} />
-            <Route path="/runs/:id" element={<RunDetails />} />
-            <Route path="/workflows" element={<Workflows />} />
-            <Route path="/agents" element={<Agents />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/schedules" element={<Schedules />} />
-            <Route path="/queues" element={<Queues />} />
-            <Route path="/monitoring" element={<Monitoring />} />
-            <Route path="/incidents" element={<Incidents />} />
-            <Route path="/settings" element={<Settings />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <Routes>
+          {/* Original Orchestrator Routes */}
+          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/runs" element={<AppLayout><Runs /></AppLayout>} />
+          <Route path="/runs/:id" element={<AppLayout><RunDetails /></AppLayout>} />
+          <Route path="/agents" element={<AppLayout><Agents /></AppLayout>} />
+          <Route path="/tools" element={<AppLayout><Tools /></AppLayout>} />
+          <Route path="/approvals" element={<AppLayout><Approvals /></AppLayout>} />
+          <Route path="/evaluations" element={<AppLayout><Evaluations /></AppLayout>} />
+          <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
+          <Route path="/policies" element={<AppLayout><Policies /></AppLayout>} />
+          <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+          <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
+          <Route path="/teams" element={<AppLayout><Teams /></AppLayout>} />
+          
+          {/* Catch-all */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

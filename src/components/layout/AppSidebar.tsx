@@ -2,14 +2,14 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Play,
-  GitBranch,
   Bot,
   Wrench,
-  Clock,
-  Database,
-  LineChart,
-  AlertTriangle,
+  UserCheck,
+  BarChart,
+  Shield,
   Settings,
+  User,
+  Users,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -23,22 +23,20 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-const navItems = [
+const mainItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Runs', url: '/runs', icon: Play },
-  { title: 'Workflows', url: '/workflows', icon: GitBranch },
   { title: 'Agents', url: '/agents', icon: Bot },
-  { title: 'Tools', url: '/tools', icon: Wrench },
-];
-
-const resourceItems = [
-  { title: 'Schedules', url: '/schedules', icon: Clock },
-  { title: 'Queues', url: '/queues', icon: Database },
-  { title: 'Monitoring', url: '/monitoring', icon: LineChart },
-  { title: 'Incidents', url: '/incidents', icon: AlertTriangle },
+  { title: 'Tools & Connectors', url: '/tools', icon: Wrench },
+  { title: 'Approvals', url: '/approvals', icon: UserCheck },
+  { title: 'Evaluations', url: '/evaluations', icon: BarChart },
+  { title: 'Analytics', url: '/analytics', icon: BarChart },
+  { title: 'Policies & Governance', url: '/policies', icon: Shield },
 ];
 
 const systemItems = [
+  { title: 'Teams', url: '/teams', icon: Users },
+  { title: 'Profile', url: '/profile', icon: User },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
@@ -51,41 +49,16 @@ export function AppSidebar() {
 
   const getNavCls = (path: string) =>
     isActive(path)
-      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-      : 'hover:bg-sidebar-accent/50';
+      ? 'font-medium text-primary bg-primary/10 hover:bg-primary/10'
+      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground';
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar>
       <SidebarContent>
-        <div className="px-3 py-4">
-          <h1 className={`font-bold text-lg ${isCollapsed ? 'text-center' : ''}`}>
-            {isCollapsed ? 'AI' : 'AI Orchestrator'}
-          </h1>
-        </div>
-
         <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavCls(item.url)}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Resources</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {resourceItems.map((item) => (
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls(item.url)}>
@@ -100,6 +73,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {systemItems.map((item) => (

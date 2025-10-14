@@ -16,6 +16,7 @@ import Policies from "./pages/Policies";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Teams from "./pages/Teams.tsx";
+import Maestro from "./pages/Maestro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/runs" element={<AppLayout><Runs /></AppLayout>} />
           <Route path="/runs/:id" element={<AppLayout><RunDetails /></AppLayout>} />
           <Route path="/agents" element={<AppLayout><Agents /></AppLayout>} />
+          <Route path="/maestro" element={<AppLayout><Maestro /></AppLayout>} />
           <Route path="/tools" element={<AppLayout><Tools /></AppLayout>} />
           <Route path="/approvals" element={<AppLayout><Approvals /></AppLayout>} />
           <Route path="/evaluations" element={<AppLayout><Evaluations /></AppLayout>} />

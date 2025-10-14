@@ -91,58 +91,58 @@ export default function Dashboard() {
 
       {/* Maestro-inspired KPI Cards - High-contrast with minimal text */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30">
+        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Agents Active</CardTitle>
-            <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <Bot className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{agentsOnline}</div>
-            <p className="text-xs text-blue-600 dark:text-blue-400">+2 from last hour</p>
+            <p className="text-xs text-primary">+2 from last hour</p>
           </CardContent>
         </Card>
         
-        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30">
+        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-success/10 to-success/20 dark:from-success/20 dark:to-success/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Runs Executing</CardTitle>
-            <Play className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Play className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeRuns}</div>
-            <p className="text-xs text-green-600 dark:text-green-400">+5 from last hour</p>
+            <p className="text-xs text-success">+5 from last hour</p>
           </CardContent>
         </Card>
         
-        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30">
+        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-warning/10 to-warning/20 dark:from-warning/20 dark:to-warning/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Latency</CardTitle>
-            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <Clock className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{Math.round(avgLatency)}ms</div>
-            <p className="text-xs text-amber-600 dark:text-amber-400">-12% from yesterday</p>
+            <p className="text-xs text-warning">-12% from yesterday</p>
           </CardContent>
         </Card>
         
-        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30">
+        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-accent/10 to-accent/20 dark:from-accent/20 dark:to-accent/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tokens / Cost (24h)</CardTitle>
-            <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <DollarSign className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalCost.toFixed(2)}</div>
-            <p className="text-xs text-purple-600 dark:text-purple-400">1.2M tokens</p>
+            <p className="text-xs text-accent">1.2M tokens</p>
           </CardContent>
         </Card>
         
-        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30">
+        <Card className="transition-all hover:shadow-md bg-gradient-to-br from-success/10 to-success/20 dark:from-success/20 dark:to-success/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{successRate.toFixed(1)}%</div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">+0.3% from yesterday</p>
+            <p className="text-xs text-success">+0.3% from yesterday</p>
           </CardContent>
         </Card>
       </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
                 <Line 
                   type="monotone" 
                   dataKey="count" 
-                  stroke="#3b82f6" 
+                  stroke="hsl(var(--primary))" 
                   strokeWidth={2} 
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
@@ -186,7 +186,7 @@ export default function Dashboard() {
                 <XAxis dataKey="day" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="cost" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cost" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -205,10 +205,10 @@ export default function Dashboard() {
               {recentEvents.map((event) => (
                 <div key={event.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
                   <div className="mt-1">
-                    {event.type === 'error' && <AlertTriangle className="h-4 w-4 text-red-500" />}
-                    {event.type === 'success' && <Activity className="h-4 w-4 text-green-500" />}
-                    {event.type === 'warning' && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
-                    {event.type === 'info' && <Activity className="h-4 w-4 text-blue-500" />}
+                    {event.type === 'error' && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                    {event.type === 'success' && <Activity className="h-4 w-4 text-success" />}
+                    {event.type === 'warning' && <AlertTriangle className="h-4 w-4 text-warning" />}
+                    {event.type === 'info' && <Activity className="h-4 w-4 text-primary" />}
                   </div>
                   <div>
                     <p className="text-sm">{event.event}</p>

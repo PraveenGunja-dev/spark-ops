@@ -127,7 +127,7 @@ export default function MaestroAgents() {
           <h1 className="text-3xl font-bold">AI Agents</h1>
           <p className="text-muted-foreground mt-1">Manage your autonomous AI workforce</p>
         </div>
-        <Button className="bg-gradient-to-r from-accent to-accent/80">
+        <Button className="gradient-primary">
           <Bot className="mr-2 h-4 w-4" />
           Deploy New Agent
         </Button>
@@ -152,7 +152,7 @@ export default function MaestroAgents() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">94.3%</div>
-            <p className="text-xs text-emerald-600">+2.1% from last week</p>
+            <p className="text-xs text-success">+2.1% from last week</p>
           </CardContent>
         </Card>
         <Card>
@@ -172,7 +172,7 @@ export default function MaestroAgents() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1.15s</div>
-            <p className="text-xs text-emerald-600">-0.2s improvement</p>
+            <p className="text-xs text-success">-0.2s improvement</p>
           </CardContent>
         </Card>
       </div>

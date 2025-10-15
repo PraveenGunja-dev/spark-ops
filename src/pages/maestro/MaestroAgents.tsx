@@ -1,4 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,10 +10,539 @@ import {
   BarChart3,
   Zap,
   Cpu,
-  Activity
+  Activity,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  AlertCircle,
+  Terminal
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+
+
+
+
+
+// Stepper component for agent deployment
+const DeploymentStepper = ({ step }: { step: number }) => {
+  const steps = [
+    { id: 1, title: 'Select Agents', description: 'Choose agents to deploy' },
+    { id: 2, title: 'Configure', description: 'Set deployment parameters' },
+    { id: 3, title: 'Review', description: 'Confirm deployment details' },
+    { id: 4, title: 'Deploy', description: 'Execute deployment' },
+  ];
+
+  return (
+    <div className="w-full mb-8">
+      <div className="flex justify-between relative">
+        {/* Progress line */}
+        <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted -z-10"></div>
+        <div 
+          className="absolute top-4 left-0 h-0.5 bg-blue-500 -z-10 transition-all duration-300 ease-in-out" 
+          style={{ width: `${(step - 1) * (100 / (steps.length - 1))}%` }}
+        ></div>
+        
+        {steps.map((stepItem, index) => (
+          <div key={stepItem.id} className="flex flex-col items-center relative">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 z-10 ${
+              stepItem.id <= step 
+                ? 'bg-blue-500 text-white border-2 border-blue-500' 
+                : 'bg-background border-2 border-muted'
+            }`}>
+              {stepItem.id < step ? (
+                <CheckCircle className="h-4 w-4" />
+              ) : (
+                <span className="text-sm font-medium">{stepItem.id}</span>
+              )}
+            </div>
+            <div className="text-center">
+              <p className={`text-sm font-medium ${
+                stepItem.id <= step ? 'text-blue-500' : 'text-muted-foreground'
+              }`}>
+                {stepItem.title}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 hidden md:block">
+                {stepItem.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Agent Selection Component
+const AgentSelectionStep = ({ 
+  agents, 
+  selectedAgents, 
+  setSelectedAgents 
+}: { 
+  agents: any[]; 
+  selectedAgents: string[]; 
+  setSelectedAgents: (agents: string[]) => void; 
+}) => {
+  const toggleAgent = (agentId: string) => {
+    if (selectedAgents.includes(agentId)) {
+      setSelectedAgents(selectedAgents.filter(id => id !== agentId));
+    } else {
+      setSelectedAgents([...selectedAgents, agentId]);
+    }
+  };
+
+  const toggleAll = () => {
+    if (selectedAgents.length === agents.length) {
+      setSelectedAgents([]);
+    } else {
+      setSelectedAgents(agents.map(agent => agent.id));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Select Agents to Deploy</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={toggleAll}
+        >
+          {selectedAgents.length === agents.length ? 'Deselect All' : 'Select All'}
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+        {agents.map((agent) => (
+          <Card 
+            key={agent.id} 
+            className={`cursor-pointer transition-all ${
+              selectedAgents.includes(agent.id) 
+                ? 'ring-2 ring-blue-500 bg-blue-50/50' 
+                : 'hover:bg-muted/50'
+            }`}
+            onClick={() => toggleAgent(agent.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className={`w-5 h-5 rounded border flex items-center justify-center mt-0.5 ${
+                  selectedAgents.includes(agent.id) 
+                    ? 'bg-blue-500 border-blue-500' 
+                    : 'border-muted-foreground'
+                }`}>
+                  {selectedAgents.includes(agent.id) && (
+                    <CheckCircle className="h-3 w-3 text-white" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">{agent.name}</h4>
+                    <Badge variant="outline" className="text-xs">
+                      {agent.type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {agent.description}
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {agent.framework}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {agent.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="text-sm text-muted-foreground">
+        Selected {selectedAgents.length} of {agents.length} agents
+      </div>
+    </div>
+  );
+};
+
+// Configuration Step
+const ConfigurationStep = ({ 
+  configuration, 
+  setConfiguration 
+}: { 
+  configuration: any; 
+  setConfiguration: (config: any) => void; 
+}) => {
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-medium">Deployment Configuration</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="text-sm font-medium mb-2 block">Environment</label>
+          <Select 
+            value={configuration.environment} 
+            onValueChange={(value) => setConfiguration({...configuration, environment: value})}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select environment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="development">Development</SelectItem>
+              <SelectItem value="staging">Staging</SelectItem>
+              <SelectItem value="production">Production</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <label className="text-sm font-medium mb-2 block">Replicas</label>
+          <Input 
+            type="number" 
+            min="1" 
+            max="10" 
+            value={configuration.replicas} 
+            onChange={(e) => setConfiguration({...configuration, replicas: parseInt(e.target.value) || 1})}
+          />
+        </div>
+        
+        <div className="md:col-span-2">
+          <label className="text-sm font-medium mb-2 block">Deployment Region</label>
+          <Select 
+            value={configuration.region} 
+            onValueChange={(value) => setConfiguration({...configuration, region: value})}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="us-east-1">US East (N. Virginia)</SelectItem>
+              <SelectItem value="us-west-2">US West (Oregon)</SelectItem>
+              <SelectItem value="eu-west-1">EU (Ireland)</SelectItem>
+              <SelectItem value="ap-southeast-1">Asia Pacific (Singapore)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="md:col-span-2">
+          <label className="text-sm font-medium mb-2 block">Additional Notes</label>
+          <Textarea 
+            value={configuration.notes} 
+            onChange={(e) => setConfiguration({...configuration, notes: e.target.value})}
+            placeholder="Add any deployment notes or special instructions..."
+            rows={3}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Review Step
+const ReviewStep = ({ 
+  selectedAgents, 
+  agents, 
+  configuration 
+}: { 
+  selectedAgents: string[]; 
+  agents: any[]; 
+  configuration: any; 
+}) => {
+  const selectedAgentObjects = agents.filter(agent => selectedAgents.includes(agent.id));
+  
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-medium">Review Deployment</h3>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Selected Agents</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {selectedAgentObjects.map(agent => (
+            <div key={agent.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="font-medium">{agent.name}</p>
+                <p className="text-sm text-muted-foreground">{agent.type} • {agent.framework}</p>
+              </div>
+              <Badge variant="outline">{agent.status}</Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Deployment Configuration</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Environment</p>
+            <p className="font-medium capitalize">{configuration.environment}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Replicas</p>
+            <p className="font-medium">{configuration.replicas}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Region</p>
+            <p className="font-medium">{configuration.region}</p>
+          </div>
+          {configuration.notes && (
+            <div className="md:col-span-2">
+              <p className="text-sm text-muted-foreground">Notes</p>
+              <p className="font-medium">{configuration.notes}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Deployment Progress Step
+const DeploymentProgressStep = ({ 
+  deploymentStatus, 
+  progress 
+}: { 
+  deploymentStatus: string; 
+  progress: number; 
+}) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'text-muted-foreground';
+      case 'in-progress': return 'text-blue-500';
+      case 'success': return 'text-emerald-500';
+      case 'failed': return 'text-destructive';
+      default: return 'text-muted-foreground';
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <div className="w-3 h-3 rounded-full bg-muted" />;
+      case 'in-progress': return <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />;
+      case 'success': return <CheckCircle className="h-3 w-3 text-emerald-500" />;
+      case 'failed': return <AlertCircle className="h-3 w-3 text-destructive" />;
+      default: return <div className="w-3 h-3 rounded-full bg-muted" />;
+    }
+  };
+  
+  const steps = [
+    { id: 'validation', title: 'Validating Configuration', status: deploymentStatus === 'pending' ? 'in-progress' : 'success' },
+    { id: 'building', title: 'Building Containers', status: deploymentStatus === 'pending' ? 'pending' : deploymentStatus === 'in-progress' && progress > 25 ? 'in-progress' : progress > 25 ? 'success' : 'pending' },
+    { id: 'deploying', title: 'Deploying Agents', status: deploymentStatus === 'pending' || progress < 50 ? 'pending' : deploymentStatus === 'in-progress' && progress > 50 ? 'in-progress' : progress > 50 ? 'success' : 'pending' },
+    { id: 'verifying', title: 'Verifying Deployment', status: deploymentStatus === 'pending' || progress < 75 ? 'pending' : deploymentStatus === 'in-progress' && progress > 75 ? 'in-progress' : progress > 75 ? 'success' : 'pending' },
+  ];
+  
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-medium">Deployment in Progress</h3>
+      
+      <div className="space-y-4">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center gap-4 p-3 rounded-lg border">
+            {getStatusIcon(step.status)}
+            <div className="flex-1">
+              <p className={`font-medium ${getStatusColor(step.status)}`}>{step.title}</p>
+            </div>
+            <div className={`text-sm ${getStatusColor(step.status)}`}>
+              {step.status === 'in-progress' ? 'In Progress' : 
+               step.status === 'success' ? 'Complete' : 
+               step.status === 'failed' ? 'Failed' : 'Pending'}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Overall Progress</span>
+          <span>{progress}%</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+      </div>
+    </div>
+  );
+};
+
+// Multi-Agent Deploy Wizard Component
+const MultiAgentDeployWizard = ({ 
+  isOpen, 
+  onOpenChange, 
+  agents 
+}: { 
+  isOpen: boolean; 
+  onOpenChange: (open: boolean) => void; 
+  agents: any[]; 
+}) => {
+  const [step, setStep] = useState(1);
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  const [configuration, setConfiguration] = useState({
+    environment: 'development',
+    replicas: 1,
+    region: 'us-east-1',
+    notes: ''
+  });
+  const [deploymentStatus, setDeploymentStatus] = useState('pending'); // pending, in-progress, success, failed
+  const [progress, setProgress] = useState(0);
+
+  const nextStep = () => {
+    if (step < 4) {
+      setStep(step + 1);
+    }
+  };
+  
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+  
+  const startDeployment = () => {
+    setStep(4);
+    setDeploymentStatus('in-progress');
+    
+    // Simulate deployment progress
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setDeploymentStatus('success');
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 500);
+  };
+  
+  const resetWizard = () => {
+    setStep(1);
+    setSelectedAgents([]);
+    setConfiguration({
+      environment: 'development',
+      replicas: 1,
+      region: 'us-east-1',
+      notes: ''
+    });
+    setDeploymentStatus('pending');
+    setProgress(0);
+  };
+  
+  const handleClose = () => {
+    resetWizard();
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+              <Bot className="h-4 w-4 text-white" />
+            </div>
+            Deploy Agents
+          </DialogTitle>
+        </DialogHeader>
+
+        <DeploymentStepper step={step} />
+
+        <div className="py-4">
+          {step === 1 && (
+            <AgentSelectionStep 
+              agents={agents} 
+              selectedAgents={selectedAgents} 
+              setSelectedAgents={setSelectedAgents} 
+            />
+          )}
+          {step === 2 && (
+            <ConfigurationStep 
+              configuration={configuration} 
+              setConfiguration={setConfiguration} 
+            />
+          )}
+          {step === 3 && (
+            <ReviewStep 
+              selectedAgents={selectedAgents} 
+              agents={agents} 
+              configuration={configuration} 
+            />
+          )}
+          {step === 4 && (
+            <DeploymentProgressStep 
+              deploymentStatus={deploymentStatus} 
+              progress={progress} 
+            />
+          )}
+        </div>
+
+        <div className="flex justify-between mt-4">
+          {step === 4 && deploymentStatus === 'success' ? (
+            <Button variant="outline" onClick={handleClose}>
+              Close
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              onClick={prevStep} 
+              disabled={step === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+          )}
+          
+          {step < 3 ? (
+            <Button 
+              onClick={nextStep}
+              disabled={step === 1 && selectedAgents.length === 0}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : step === 3 ? (
+            <Button 
+              onClick={startDeployment}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Deploy Agents
+            </Button>
+          ) : deploymentStatus === 'success' ? (
+            <Button 
+              onClick={handleClose}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600"
+            >
+              Finish
+            </Button>
+          ) : null}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default function MaestroAgents() {
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  
   const agents = [
     {
       id: 'a-1',
@@ -124,14 +654,17 @@ export default function MaestroAgents() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">AI Agents</h1>
+          <h1 className="text-3xl font-bold">🔷 Agent Orchestrator</h1>
           <p className="text-muted-foreground mt-1">Manage your autonomous AI workforce</p>
         </div>
-        <Button className="gradient-primary">
-          <Bot className="mr-2 h-4 w-4" />
-          Deploy New Agent
+        <Button className="gradient-primary" onClick={() => setIsWizardOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Deploy Agents
         </Button>
       </div>
+
+      {/* Multi-Agent Deploy Wizard */}
+      <MultiAgentDeployWizard isOpen={isWizardOpen} onOpenChange={setIsWizardOpen} agents={agents} />
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -189,7 +722,7 @@ export default function MaestroAgents() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">{agent.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">{agent.type}</CardDescription>
+                    <p className="text-xs text-muted-foreground mt-1">{agent.type}</p>
                   </div>
                 </div>
                 {agent.status === 'running' && (
@@ -256,6 +789,67 @@ export default function MaestroAgents() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Deployment Preview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Agent Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-blue-500" />
+              Agent Preview
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Current deployment status</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div>
+                <h3 className="font-medium">Research Agent</h3>
+                <p className="text-sm text-muted-foreground">Planner Framework</p>
+              </div>
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                Active
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div>
+                <h3 className="font-medium">Content Generator</h3>
+                <p className="text-sm text-muted-foreground">Writer Framework</p>
+              </div>
+              <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                Deploying
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Console Output */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Terminal className="h-5 w-5 text-green-500" />
+              Console Output
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Real-time deployment logs</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="font-mono text-sm p-3 bg-black text-green-400 rounded-lg h-40 overflow-y-auto">
+              <p>$ maestro deploy research-agent</p>
+              <p className="text-blue-400">[INFO] Initializing deployment process...</p>
+              <p className="text-blue-400">[INFO] Validating configuration...</p>
+              <p className="text-blue-400">[INFO] Building agent container...</p>
+              <p className="text-yellow-400">[WARN] Optimizing memory allocation...</p>
+              <p className="text-blue-400">[INFO] Deploying to cluster...</p>
+              <p className="text-green-400">[SUCCESS] Agent deployed successfully!</p>
+              <p className="text-green-400">[INFO] Agent is now active and running</p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              <span>Deployment successful - Agent is active</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

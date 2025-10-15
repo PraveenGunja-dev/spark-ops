@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Workflow, ArrowRight, Sparkles, Layers } from 'lucide-react';
+import { Bot, Workflow, ArrowRight, Sparkles, Layers, Code2 } from 'lucide-react';
 
 export default function Index() {
   return (
@@ -21,7 +21,7 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Orchestrator Card */}
           <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
             <CardHeader className="pb-4">
@@ -103,6 +103,45 @@ export default function Index() {
                   size="lg"
                 >
                   Open Maestro
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Studio Card */}
+          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
+            <CardHeader className="pb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4">
+                <Code2 className="h-7 w-7 text-white" />
+              </div>
+              <CardTitle className="text-2xl">Studio</CardTitle>
+              <CardDescription className="text-base">
+                Visual automation designer and workflow builder
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                  <span>Drag-and-drop workflow designer</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                  <span>Automation templates and libraries</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                  <span>Real-time collaboration and versioning</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                  <span>Integrated debugging and testing</span>
+                </li>
+              </ul>
+              <Link to="/studio" className="block">
+                <Button className="w-full group-hover:shadow-lg transition-all gradient-primary" size="lg">
+                  Open Studio
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

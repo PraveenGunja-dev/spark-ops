@@ -27,6 +27,9 @@ import MaestroObservability from "./pages/maestro/MaestroObservability";
 import MaestroGovernance from "./pages/maestro/MaestroGovernance";
 import MaestroIntegrations from "./pages/maestro/MaestroIntegrations";
 import MaestroSettings from "./pages/maestro/MaestroSettings";
+import { StudioLayout } from "./components/layout/StudioLayout";
+import StudioWorkspace from "./pages/studio/StudioWorkspace";
+import StudioTemplates from "./pages/studio/StudioTemplates";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +65,10 @@ const App = () => (
           <Route path="/maestro/governance" element={<MaestroLayout><MaestroGovernance /></MaestroLayout>} />
           <Route path="/maestro/integrations" element={<MaestroLayout><MaestroIntegrations /></MaestroLayout>} />
           <Route path="/maestro/settings" element={<MaestroLayout><MaestroSettings /></MaestroLayout>} />
+          
+          {/* Studio Routes */}
+          <Route path="/studio" element={<StudioLayout><StudioWorkspace /></StudioLayout>} />
+          <Route path="/studio/templates" element={<StudioLayout><StudioTemplates /></StudioLayout>} />
           
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

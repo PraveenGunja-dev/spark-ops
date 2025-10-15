@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Workflow, ArrowRight, Sparkles, Layers } from 'lucide-react';
+import { Bot, ArrowRight, Sparkles, Layers } from 'lucide-react';
 
 export default function Index() {
   return (

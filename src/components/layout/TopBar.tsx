@@ -66,7 +66,9 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{mockUsers[0].name}</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {mockUsers[0]?.name || 'User'}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => navigate('/profile')}>Profile</DropdownMenuItem>
             <DropdownMenuItem>Team</DropdownMenuItem>

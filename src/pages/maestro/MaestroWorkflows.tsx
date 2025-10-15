@@ -14,6 +14,7 @@ import {
   Activity,
   MessageSquare
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function MaestroWorkflows() {
   const workflows = [
@@ -116,9 +117,11 @@ export default function MaestroWorkflows() {
             <Copy className="mr-2 h-4 w-4" />
             Import
           </Button>
-          <Button className="gradient-primary">
-            <Workflow className="mr-2 h-4 w-4" />
-            Create Workflow
+          <Button className="gradient-primary" asChild>
+            <Link to="/workflows/studio">
+              <Workflow className="mr-2 h-4 w-4" />
+              Create Workflow
+            </Link>
           </Button>
         </div>
       </div>
@@ -242,8 +245,8 @@ export default function MaestroWorkflows() {
       {/* Visual Builder */}
       <Card className="border-2 border-dashed border-border/50 hover:border-accent/50 transition-colors">
         <CardHeader>
-          <CardTitle>Visual Workflow Builder</CardTitle>
-          <CardDescription>Drag-and-drop interface for designing AI workflows</CardDescription>
+          <CardTitle>Visual Workflow Studio</CardTitle>
+          <CardDescription>Advanced drag-and-drop interface for designing AI workflows</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="aspect-video bg-gradient-to-br from-muted/50 to-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
@@ -299,6 +302,14 @@ export default function MaestroWorkflows() {
             
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
               <p className="text-sm text-white">Drag nodes from the palette to build workflows</p>
+            </div>
+            
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Button asChild size="lg" className="z-10">
+                <Link to="/workflows/studio">
+                  Open Workflow Studio
+                </Link>
+              </Button>
             </div>
           </div>
         </CardContent>

@@ -19,6 +19,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/StatusBadge';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Search, Filter, Play, Pause, Square, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockRuns, mockWorkflows, mockAgents } from '@/lib/mockData';
@@ -27,6 +28,7 @@ export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [isLoading] = useState(false); // Set to true to see skeleton
 
   const filteredRuns = mockRuns.filter(run => {
     const matchesSearch = run.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -107,6 +109,9 @@ export default function Runs() {
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <TableSkeleton rows={10} columns={8} />
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -162,6 +167,7 @@ export default function Runs() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>

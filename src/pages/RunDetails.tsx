@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockRuns, mockRunSteps, mockWorkflows, mockAgents } from '@/lib/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
+import { RunTimeline } from '@/components/visualizations/RunTimeline';
 import { ArrowLeft, RefreshCw, X, Play, Clock, DollarSign } from 'lucide-react';
 
 export default function RunDetails() {
@@ -157,43 +158,7 @@ export default function RunDetails() {
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Execution Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {steps.length > 0 ? (
-                <div className="space-y-4">
-                  {steps.map((step) => (
-                    <div key={step.id} className="flex items-start gap-4 p-4 rounded-lg border">
-                      <div className={`mt-1 h-2 w-2 rounded-full ${step.success ? 'bg-success' : 'bg-destructive'}`} />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{step.name}</p>
-                            <p className="text-sm text-muted-foreground">Step {step.idx} • {step.type}</p>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {(step.durationMs / 1000).toFixed(2)}s
-                          </div>
-                        </div>
-                        {step.request && (
-                          <details className="mt-2">
-                            <summary className="text-sm text-muted-foreground cursor-pointer">Request</summary>
-                            <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
-                              {JSON.stringify(step.request, null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No steps recorded</p>
-              )}
-            </CardContent>
-          </Card>
+          <RunTimeline steps={steps} />
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-4">

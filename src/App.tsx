@@ -26,6 +26,7 @@ import MaestroWorkflows from "./pages/maestro/MaestroWorkflows";
 import MaestroObservability from "./pages/maestro/MaestroObservability";
 import MaestroGovernance from "./pages/maestro/MaestroGovernance";
 import MaestroIntegrations from "./pages/maestro/MaestroIntegrations";
+import MaestroSettings from "./pages/maestro/MaestroSettings";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +45,6 @@ const App = () => (
           <Route path="/runs" element={<AppLayout><Runs /></AppLayout>} />
           <Route path="/runs/:id" element={<AppLayout><RunDetails /></AppLayout>} />
           <Route path="/agents" element={<AppLayout><Agents /></AppLayout>} />
-          <Route path="/maestro" element={<AppLayout><Maestro /></AppLayout>} />
           <Route path="/tools" element={<AppLayout><Tools /></AppLayout>} />
           <Route path="/approvals" element={<AppLayout><Approvals /></AppLayout>} />
           <Route path="/evaluations" element={<AppLayout><Evaluations /></AppLayout>} />
@@ -61,6 +61,7 @@ const App = () => (
           <Route path="/maestro/observability" element={<MaestroLayout><MaestroObservability /></MaestroLayout>} />
           <Route path="/maestro/governance" element={<MaestroLayout><MaestroGovernance /></MaestroLayout>} />
           <Route path="/maestro/integrations" element={<MaestroLayout><MaestroIntegrations /></MaestroLayout>} />
+          <Route path="/maestro/settings" element={<MaestroLayout><MaestroSettings /></MaestroLayout>} />
           
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

@@ -32,7 +32,7 @@ const mainItems = [
 
 const systemItems = [
   { title: 'Back to Home', url: '/', icon: Home },
-  { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Settings', url: '/maestro/settings', icon: Settings },
 ];
 
 export function MaestroSidebar() {

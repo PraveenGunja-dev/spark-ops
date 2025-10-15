@@ -9,10 +9,7 @@ import {
   GitBranch,
   Clock,
   CheckCircle,
-  XCircle,
-  Bot,
-  Activity,
-  MessageSquare
+  XCircle
 } from 'lucide-react';
 
 export default function MaestroWorkflows() {
@@ -116,7 +113,7 @@ export default function MaestroWorkflows() {
             <Copy className="mr-2 h-4 w-4" />
             Import
           </Button>
-          <Button className="gradient-primary">
+          <Button className="bg-gradient-to-r from-accent to-accent/80">
             <Workflow className="mr-2 h-4 w-4" />
             Create Workflow
           </Button>
@@ -142,7 +139,7 @@ export default function MaestroWorkflows() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">287</div>
-            <p className="text-xs text-success">+42 from yesterday</p>
+            <p className="text-xs text-emerald-600">+42 from yesterday</p>
           </CardContent>
         </Card>
         <Card>
@@ -152,7 +149,7 @@ export default function MaestroWorkflows() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">93.3%</div>
-            <p className="text-xs text-success">+1.2% improvement</p>
+            <p className="text-xs text-emerald-600">+1.2% improvement</p>
           </CardContent>
         </Card>
         <Card>
@@ -239,109 +236,18 @@ export default function MaestroWorkflows() {
         ))}
       </div>
 
-      {/* Visual Builder */}
+      {/* Visual Builder Preview */}
       <Card className="border-2 border-dashed border-border/50 hover:border-accent/50 transition-colors">
         <CardHeader>
           <CardTitle>Visual Workflow Builder</CardTitle>
           <CardDescription>Drag-and-drop interface for designing AI workflows</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="aspect-video bg-gradient-to-br from-muted/50 to-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
-            {/* Visual representation of a workflow */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-8">
-                {/* Start Node */}
-                <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg">
-                  <Play className="h-6 w-6 text-primary-foreground" />
-                </div>
-                
-                {/* Connector */}
-                <div className="h-1 w-12 bg-primary"></div>
-                
-                {/* Agent Node */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex flex-col items-center justify-center shadow-lg p-2">
-                  <Bot className="h-6 w-6 text-accent-foreground" />
-                  <span className="text-xs text-accent-foreground mt-1 text-center">Research Agent</span>
-                </div>
-                
-                {/* Connector */}
-                <div className="h-1 w-12 bg-accent"></div>
-                
-                {/* Decision Node */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-secondary to-secondary/80 flex flex-col items-center justify-center shadow-lg p-2">
-                  <GitBranch className="h-6 w-6 text-secondary-foreground" />
-                  <span className="text-xs text-secondary-foreground mt-1 text-center">Decision</span>
-                </div>
-                
-                {/* Connectors */}
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center">
-                    <div className="h-1 w-8 bg-secondary"></div>
-                    <div className="w-4 h-4 rounded-full bg-secondary"></div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="h-1 w-8 bg-secondary"></div>
-                    <div className="w-4 h-4 rounded-full bg-secondary"></div>
-                  </div>
-                </div>
-                
-                {/* End Nodes */}
-                <div className="flex flex-col gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-success flex items-center justify-center shadow-lg">
-                    <CheckCircle className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-destructive to-destructive/80 flex items-center justify-center shadow-lg">
-                    <XCircle className="h-6 w-6 text-destructive-foreground" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
-              <p className="text-sm text-white">Drag nodes from the palette to build workflows</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Workflow Palette */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Component Palette</CardTitle>
-          <CardDescription>Drag-and-drop components to build workflows</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg border border-border/50 hover:border-accent/50 transition-colors cursor-grab active:cursor-grabbing flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <Bot className="h-6 w-6 text-primary" />
-              </div>
-              <span className="text-sm font-medium">Agent</span>
-              <p className="text-xs text-muted-foreground text-center">AI agent with specific capabilities</p>
-            </div>
-            
-            <div className="p-4 rounded-lg border border-border/50 hover:border-accent/50 transition-colors cursor-grab active:cursor-grabbing flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center">
-                <GitBranch className="h-6 w-6 text-accent" />
-              </div>
-              <span className="text-sm font-medium">Decision</span>
-              <p className="text-xs text-muted-foreground text-center">Conditional branching logic</p>
-            </div>
-            
-            <div className="p-4 rounded-lg border border-border/50 hover:border-accent/50 transition-colors cursor-grab active:cursor-grabbing flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/10 flex items-center justify-center">
-                <Activity className="h-6 w-6 text-secondary" />
-              </div>
-              <span className="text-sm font-medium">Tool</span>
-              <p className="text-xs text-muted-foreground text-center">External API or function call</p>
-            </div>
-            
-            <div className="p-4 rounded-lg border border-border/50 hover:border-accent/50 transition-colors cursor-grab active:cursor-grabbing flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-muted/20 to-muted/10 flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-foreground" />
-              </div>
-              <span className="text-sm font-medium">Human</span>
-              <p className="text-xs text-muted-foreground text-center">Human-in-the-loop approval</p>
+          <div className="aspect-video bg-gradient-to-br from-muted/50 to-muted/20 rounded-lg flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <GitBranch className="h-12 w-12 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">Builder UI coming soon</p>
+              <p className="text-xs text-muted-foreground">Drag nodes, connect edges, configure agents</p>
             </div>
           </div>
         </CardContent>

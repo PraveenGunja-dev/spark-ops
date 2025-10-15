@@ -68,7 +68,7 @@ export default function Maestro() {
           <h1 className="text-3xl font-bold">🧠 Agent Maestro</h1>
           <p className="text-muted-foreground">Orchestrate, monitor, and manage AI Agents, Robots, and Human Workflows</p>
         </div>
-        <Button className="gradient-primary">
+        <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
           <Brain className="h-4 w-4 mr-2" />
           Create New Agent
         </Button>
@@ -80,7 +80,7 @@ export default function Maestro() {
           title="Total Agents" 
           value={totalAgents} 
           icon={Brain}
-          className="border-l-4 border-l-primary"
+          className="border-l-4 border-l-blue-500"
         />
         <KpiCard 
           title="Active Agents" 
@@ -88,13 +88,13 @@ export default function Maestro() {
           change="+2 from last hour"
           changeType="positive"
           icon={Zap}
-          className="border-l-4 border-l-success"
+          className="border-l-4 border-l-green-500"
         />
         <KpiCard 
           title="Idle Agents" 
           value={idleAgents} 
           icon={Pause}
-          className="border-l-4 border-l-warning"
+          className="border-l-4 border-l-yellow-500"
         />
         <KpiCard 
           title="Failed Agents" 
@@ -102,7 +102,7 @@ export default function Maestro() {
           change="-1 from last hour"
           changeType="negative"
           icon={Shield}
-          className="border-l-4 border-l-destructive"
+          className="border-l-4 border-l-red-500"
         />
       </div>
 
@@ -111,14 +111,14 @@ export default function Maestro() {
         {extendedAgents.map((agent) => (
           <Card 
             key={agent.id} 
-            className={`transition-all hover:shadow-lg cursor-pointer ${selectedAgent === agent.id ? 'ring-2 ring-primary' : ''}`}
+            className={`transition-all hover:shadow-lg cursor-pointer ${selectedAgent === agent.id ? 'ring-2 ring-blue-500' : ''}`}
             onClick={() => setSelectedAgent(agent.id === selectedAgent ? null : agent.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
+                    <Brain className="h-5 w-5 text-blue-500" />
                     {agent.name}
                   </CardTitle>
                   <CardDescription className="mt-1">

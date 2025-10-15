@@ -53,7 +53,7 @@ export default function Index() {
                 </li>
               </ul>
               <Link to="/dashboard" className="block">
-                <Button className="w-full group-hover:shadow-lg transition-all gradient-primary" size="lg">
+                <Button className="w-full group-hover:shadow-lg transition-all" size="lg">
                   Open Orchestrator
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -99,7 +99,7 @@ export default function Index() {
               </ul>
               <Link to="/maestro" className="block">
                 <Button 
-                  className="w-full mt-6 group-hover:shadow-lg transition-all gradient-hero" 
+                  className="w-full group-hover:shadow-lg transition-all bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70" 
                   size="lg"
                 >
                   Open Maestro

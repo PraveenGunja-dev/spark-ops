@@ -28,6 +28,7 @@ const mainItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Runs', url: '/runs', icon: Play },
   { title: 'Agents', url: '/agents', icon: Bot },
+  { title: 'Agent Maestro', url: '/maestro', icon: Brain },
   { title: 'Tools & Connectors', url: '/tools', icon: Wrench },
   { title: 'Approvals', url: '/approvals', icon: UserCheck },
   { title: 'Evaluations', url: '/evaluations', icon: BarChart },

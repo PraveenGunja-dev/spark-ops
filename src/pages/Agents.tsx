@@ -17,9 +17,22 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Bot, Play, Brain, Settings, BarChart3 } from 'lucide-react';
-import { mockAgents } from '@/lib/mockData';
+import { useAgents } from '@/hooks/useAgents';
+import { useProjects } from '@/hooks/useProjects';
+import { useState } from 'react';
 
 export default function Agents() {
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  
+  // Get first project (add project selector later)
+  const { data: projectsData } = useProjects(1, 1);
+  const projectId = projectsData?.items[0]?.id;
+  
+  // Fetch agents
+  const { data, isLoading } = useAgents(projectId || '', page, pageSize);
+  const agents = data?.items || [];
+  const totalPages = data?.totalPages || 1;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -55,7 +68,7 @@ export default function Agents() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockAgents.map((agent) => (
+              {agents.map((agent) => (
                 <TableRow key={agent.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">

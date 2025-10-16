@@ -3,7 +3,7 @@
  * Central configuration for all API calls
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const API_TIMEOUT = 30000; // 30 seconds
 
 export interface ApiError {
@@ -26,6 +26,20 @@ export class ApiException extends Error {
 }
 
 /**
+ * Get authentication token from localStorage
+ */
+function getAuthToken(): string | null {
+  return localStorage.getItem('access_token');
+}
+
+/**
+ * Get API key from localStorage
+ */
+function getApiKey(): string | null {
+  return localStorage.getItem('api_key');
+}
+
+/**
  * Generic fetch wrapper with error handling
  */
 async function apiFetch<T>(
@@ -35,11 +49,23 @@ async function apiFetch<T>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
+  // Add authentication headers
+  const token = getAuthToken();
+  const apiKey = getApiKey();
+  const authHeaders: Record<string, string> = {};
+  
+  if (token) {
+    authHeaders['Authorization'] = `Bearer ${token}`;
+  } else if (apiKey) {
+    authHeaders['X-API-Key'] = apiKey;
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options.headers,
       },
       signal: controller.signal,

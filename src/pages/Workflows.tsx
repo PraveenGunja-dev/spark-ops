@@ -1,10 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { mockWorkflows } from '@/lib/mockData';
+import { useWorkflows } from '@/hooks/useWorkflows';
+import { useProjects } from '@/hooks/useProjects';
+import { useState } from 'react';
 import { GitBranch, Clock, TrendingUp, Plus } from 'lucide-react';
 
 export default function Workflows() {
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  
+  // Get first project
+  const { data: projectsData } = useProjects(1, 1);
+  const projectId = projectsData?.items[0]?.id;
+  
+  // Fetch workflows
+  const { data, isLoading } = useWorkflows(projectId || '', page, pageSize);
+  const workflows = data?.items || [];
+  const totalPages = data?.totalPages || 1;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19,7 +32,16 @@ export default function Workflows() {
       </div>
 
       <div className="grid gap-4">
-        {mockWorkflows.map((workflow) => {
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-muted-foreground">Loading workflows...</p>
+          </div>
+        ) : workflows.length === 0 ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-muted-foreground">No workflows found. Create your first workflow to get started.</p>
+          </div>
+        ) : (
+        workflows.map((workflow) => {
           // Get the latest version, with a safety check for empty arrays
           const latestVersion = workflow.versions.length > 0 
             ? workflow.versions[workflow.versions.length - 1] 
@@ -97,7 +119,8 @@ export default function Workflows() {
               </CardContent>
             </Card>
           );
-        })}
+        }))
+        }
       </div>
     </div>
   );

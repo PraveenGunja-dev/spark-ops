@@ -22,30 +22,54 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Search, Filter, Play, Pause, Square, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { mockRuns, mockWorkflows, mockAgents } from '@/lib/mockData';
+import { useRuns } from '@/hooks/useRuns';
+import { useWorkflows } from '@/hooks/useWorkflows';
+import { useAgents } from '@/hooks/useAgents';
+import { useProjects } from '@/hooks/useProjects';
 
 export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
-  const [isLoading] = useState(false); // Set to true to see skeleton
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
-  const filteredRuns = mockRuns.filter(run => {
-    const matchesSearch = run.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || run.status === statusFilter;
-    const matchesAgent = agentFilter === 'all' || run.agentId === agentFilter;
-    return matchesSearch && matchesStatus && matchesAgent;
-  });
+  // Get first project
+  const { data: projectsData } = useProjects(1, 1);
+  const projectId = projectsData?.items[0]?.id;
+  
+  // Fetch data
+  const { data: runsData, isLoading } = useRuns(
+    page,
+    pageSize,
+    {
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      agentId: agentFilter !== 'all' ? agentFilter : undefined,
+    }
+  );
+  
+  const { data: workflowsData } = useWorkflows(projectId || '', 1, 100);
+  const { data: agentsData } = useAgents(projectId || '', 1, 100);
+  
+  const runs = runsData?.runs || [];
+  const workflows = workflowsData?.items || [];
+  const agents = agentsData?.items || [];
+  const totalPages = runsData?.totalPages || 1;
+  
+  // Filter by search query (client-side for ID search)
+  const filteredRuns = runs.filter(run =>
+    run.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const getWorkflowName = (workflowId: string) => {
-    return mockWorkflows.find(w => w.id === workflowId)?.name || workflowId;
+    return workflows.find(w => w.id === workflowId)?.name || workflowId;
   };
 
   const getAgentName = (agentId: string) => {
-    return mockAgents.find(a => a.id === agentId)?.name || agentId;
+    return agents.find(a => a.id === agentId)?.name || agentId;
   };
 
-  const uniqueAgents = Array.from(new Set(mockRuns.map(run => run.agentId)));
+  const uniqueAgents = Array.from(new Set(runs.map(run => run.agentId)));
 
   return (
     <div className="space-y-6">

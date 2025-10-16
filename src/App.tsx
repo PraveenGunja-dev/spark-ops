@@ -37,7 +37,7 @@ const WorkflowStudio = lazy(() => import("./pages/WorkflowStudio"));
 const Maestro = lazy(() => import("./pages/Maestro"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MaestroDashboard = lazy(() => import("./pages/maestro/MaestroDashboard"));
-const MaestroAgents = lazy(() => import("./pages/maestro/MaestroAgents"));
+const MaestroAgents = lazy(() => import("./pages/maestro/MaestroAgents")); // Original component
 const MaestroWorkflows = lazy(() => import("./pages/maestro/MaestroWorkflows"));
 const MaestroObservability = lazy(() => import("./pages/maestro/MaestroObservability"));
 const MaestroGovernance = lazy(() => import("./pages/maestro/MaestroGovernance"));

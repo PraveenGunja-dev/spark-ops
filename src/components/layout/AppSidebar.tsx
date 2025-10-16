@@ -11,6 +11,7 @@ import {
   User,
   Users,
   Brain,
+  GitBranch,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -25,9 +26,10 @@ import {
 } from '@/components/ui/sidebar';
 
 const mainItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Runs', url: '/runs', icon: Play },
   { title: 'Agents', url: '/agents', icon: Bot },
+  { title: 'Workflows', url: '/workflows', icon: GitBranch },
   { title: 'Tools & Connectors', url: '/tools', icon: Wrench },
   { title: 'Approvals', url: '/approvals', icon: UserCheck },
   { title: 'Evaluations', url: '/evaluations', icon: BarChart },

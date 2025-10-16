@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useWorkflows } from '@/hooks/useWorkflows';
-import { useProjects } from '@/hooks/useProjects';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
+import { CreateWorkflowDialog } from '@/components/workflows/CreateWorkflowDialog';
 import { useState } from 'react';
 import { GitBranch, Clock, TrendingUp, Plus } from 'lucide-react';
 
@@ -10,12 +12,11 @@ export default function Workflows() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
   
-  // Get first project
-  const { data: projectsData } = useProjects(1, 1);
-  const projectId = projectsData?.items[0]?.id;
+  // Get selected project from context
+  const { selectedProjectId } = useProject();
   
   // Fetch workflows
-  const { data, isLoading } = useWorkflows(projectId || '', page, pageSize);
+  const { data, isLoading } = useWorkflows(selectedProjectId || '', page, pageSize);
   const workflows = data?.items || [];
   const totalPages = data?.totalPages || 1;
   return (
@@ -25,10 +26,10 @@ export default function Workflows() {
           <h1 className="text-3xl font-bold">Workflows</h1>
           <p className="text-muted-foreground">Automation pipelines and processes</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Workflow
-        </Button>
+        <div className="flex items-center gap-3">
+          <ProjectSelector />
+          <CreateWorkflowDialog />
+        </div>
       </div>
 
       <div className="grid gap-4">

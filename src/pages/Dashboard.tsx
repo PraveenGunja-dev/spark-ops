@@ -100,9 +100,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Command Center</h1>
-        <p className="text-muted-foreground">Real-time overview of your autonomous workforce</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Command Center</h1>
+          <p className="text-muted-foreground">Real-time overview of your autonomous workforce</p>
+        </div>
+        <ProjectSelector />
       </div>
 
       {/* Maestro-inspired KPI Cards - High-contrast with minimal text */}

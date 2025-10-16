@@ -20,12 +20,12 @@ import {
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/StatusBadge';
 import { TableSkeleton } from '@/components/ui/loading-skeleton';
-import { Search, Filter, Play, Pause, Square, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, Filter, Play, Square, Eye } from 'lucide-react';
 import { useRuns } from '@/hooks/useRuns';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { useAgents } from '@/hooks/useAgents';
-import { useProjects } from '@/hooks/useProjects';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
 
 export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,9 +34,8 @@ export default function Runs() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  // Get first project
-  const { data: projectsData } = useProjects(1, 1);
-  const projectId = projectsData?.items[0]?.id;
+  // Get selected project from context
+  const { selectedProjectId } = useProject();
   
   // Fetch data
   const { data: runsData, isLoading } = useRuns(
@@ -48,8 +47,8 @@ export default function Runs() {
     }
   );
   
-  const { data: workflowsData } = useWorkflows(projectId || '', 1, 100);
-  const { data: agentsData } = useAgents(projectId || '', 1, 100);
+  const { data: workflowsData } = useWorkflows(selectedProjectId || '', 1, 100);
+  const { data: agentsData } = useAgents(selectedProjectId || '', 1, 100);
   
   const runs = runsData?.runs || [];
   const workflows = workflowsData?.items || [];
@@ -78,10 +77,13 @@ export default function Runs() {
           <h1 className="text-3xl font-bold">Runs</h1>
           <p className="text-muted-foreground">Live view of all active, completed, or failed runs</p>
         </div>
-        <Button>
-          <Play className="h-4 w-4 mr-2" />
-          Start New Run
-        </Button>
+        <div className="flex items-center gap-3">
+          <ProjectSelector />
+          <Button>
+            <Play className="h-4 w-4 mr-2" />
+            Start New Run
+          </Button>
+        </div>
       </div>
 
       <Card>

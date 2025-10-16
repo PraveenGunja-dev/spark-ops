@@ -18,19 +18,20 @@ import {
 } from '@/components/ui/select';
 import { Bot, Play, Brain, Settings, BarChart3 } from 'lucide-react';
 import { useAgents } from '@/hooks/useAgents';
-import { useProjects } from '@/hooks/useProjects';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
+import { CreateAgentDialog } from '@/components/agents/CreateAgentDialog';
 import { useState } from 'react';
 
 export default function Agents() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
   
-  // Get first project (add project selector later)
-  const { data: projectsData } = useProjects(1, 1);
-  const projectId = projectsData?.items[0]?.id;
+  // Get selected project from context
+  const { selectedProjectId } = useProject();
   
   // Fetch agents
-  const { data, isLoading } = useAgents(projectId || '', page, pageSize);
+  const { data, isLoading } = useAgents(selectedProjectId || '', page, pageSize);
   const agents = data?.items || [];
   const totalPages = data?.totalPages || 1;
   return (
@@ -40,10 +41,10 @@ export default function Agents() {
           <h1 className="text-3xl font-bold">Agents</h1>
           <p className="text-muted-foreground">Registry of all autonomous agents in the system</p>
         </div>
-        <Button>
-          <Brain className="h-4 w-4 mr-2" />
-          Create New Agent
-        </Button>
+        <div className="flex items-center gap-3">
+          <ProjectSelector />
+          <CreateAgentDialog />
+        </div>
       </div>
 
       <Card>

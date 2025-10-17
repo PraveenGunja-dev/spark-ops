@@ -26,13 +26,15 @@ import { useWorkflows } from '@/hooks/useWorkflows';
 import { useAgents } from '@/hooks/useAgents';
 import { useProject } from '@/contexts/ProjectContext';
 import { ProjectSelector } from '@/components/ProjectSelector';
+import { CreateRunDialog } from '@/components/runs/CreateRunDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
 
   // Get selected project from context
   const { selectedProjectId } = useProject();
@@ -79,10 +81,7 @@ export default function Runs() {
         </div>
         <div className="flex items-center gap-3">
           <ProjectSelector />
-          <Button>
-            <Play className="h-4 w-4 mr-2" />
-            Start New Run
-          </Button>
+          <CreateRunDialog />
         </div>
       </div>
 
@@ -196,6 +195,18 @@ export default function Runs() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {!isLoading && filteredRuns.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          total={runsData?.total || 0}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

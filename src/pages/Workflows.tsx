@@ -1,16 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useWorkflows } from '@/hooks/useWorkflows';
+import { useWorkflows, useDeleteWorkflow } from '@/hooks/useWorkflows';
 import { useProject } from '@/contexts/ProjectContext';
 import { ProjectSelector } from '@/components/ProjectSelector';
 import { CreateWorkflowDialog } from '@/components/workflows/CreateWorkflowDialog';
+import { EditWorkflowDialog } from '@/components/workflows/EditWorkflowDialog';
+import { Pagination } from '@/components/ui/pagination';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useState } from 'react';
-import { GitBranch, Clock, TrendingUp, Plus } from 'lucide-react';
+import { GitBranch, Clock, TrendingUp, Plus, Trash2, Settings } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Workflows() {
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [workflowToDelete, setWorkflowToDelete] = useState<{ id: string; name: string } | null>(null);
   
   // Get selected project from context
   const { selectedProjectId } = useProject();
@@ -19,6 +25,28 @@ export default function Workflows() {
   const { data, isLoading } = useWorkflows(selectedProjectId || '', page, pageSize);
   const workflows = data?.items || [];
   const totalPages = data?.totalPages || 1;
+  
+  // Delete mutation
+  const deleteWorkflow = useDeleteWorkflow();
+  
+  const handleDeleteClick = (workflow: { id: string; name: string }) => {
+    setWorkflowToDelete(workflow);
+    setDeleteDialogOpen(true);
+  };
+  
+  const handleDeleteConfirm = async () => {
+    if (!workflowToDelete) return;
+    
+    try {
+      await deleteWorkflow.mutateAsync(workflowToDelete.id);
+      toast.success(`Workflow "${workflowToDelete.name}" deleted successfully`);
+      setDeleteDialogOpen(false);
+      setWorkflowToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      toast.error('Failed to delete workflow. Please try again.');
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -52,7 +80,7 @@ export default function Workflows() {
             <Card key={workflow.id} className="hover:shadow-md transition-smooth">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <GitBranch className="h-5 w-5 text-primary" />
                     <div>
                       <CardTitle>{workflow.name}</CardTitle>
@@ -65,11 +93,21 @@ export default function Workflows() {
                       </div>
                     </div>
                   </div>
-                  {latestVersion && (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                      {latestVersion.status}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {latestVersion && (
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                        {latestVersion.status}
+                      </Badge>
+                    )}
+                    <EditWorkflowDialog workflow={workflow} />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(workflow)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -123,6 +161,29 @@ export default function Workflows() {
         }))
         }
       </div>
+
+      {/* Pagination */}
+      {!isLoading && workflows.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          total={data?.total || 0}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Workflow"
+        itemName={workflowToDelete?.name}
+        description={`This will permanently delete the workflow "${workflowToDelete?.name}" and all its versions. Any scheduled runs will be cancelled.`}
+        isDeleting={deleteWorkflow.isPending}
+      />
     </div>
   );
 }

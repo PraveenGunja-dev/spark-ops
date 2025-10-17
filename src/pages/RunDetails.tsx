@@ -3,16 +3,60 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockRuns, mockRunSteps, mockWorkflows, mockAgents } from '@/lib/mockData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { RunTimeline } from '@/components/visualizations/RunTimeline';
-import { ArrowLeft, RefreshCw, X, Play, Clock, DollarSign } from 'lucide-react';
+import { ArrowLeft, RefreshCw, X, Clock, DollarSign, Loader2 } from 'lucide-react';
+import { useRun, useRunSteps, useCancelRun, useRetryRun } from '@/hooks/useRuns';
+import { useWorkflow } from '@/hooks/useWorkflows';
+import { useAgent } from '@/hooks/useAgents';
+import { toast } from 'sonner';
 
 export default function RunDetails() {
   const { id } = useParams<{ id: string }>();
-  const run = mockRuns.find(r => r.id === id);
+  
+  // Fetch run, steps, workflow, and agent data
+  const { data: run, isLoading: runLoading, error: runError, refetch: refetchRun } = useRun(id!);
+  const { data: steps = [], isLoading: stepsLoading } = useRunSteps(id!);
+  const { data: workflow } = useWorkflow(run?.workflowId || '');
+  const { data: agent } = useAgent(run?.agentId || '');
+  
+  // Mutations
+  const cancelRun = useCancelRun();
+  const retryRun = useRetryRun();
 
-  if (!run) {
+  const handleCancel = async () => {
+    if (!id) return;
+    try {
+      await cancelRun.mutateAsync(id);
+      toast.success('Run cancelled successfully');
+      refetchRun();
+    } catch (error) {
+      toast.error('Failed to cancel run');
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!id) return;
+    try {
+      await retryRun.mutateAsync(id);
+      toast.success('Run retry initiated');
+      refetchRun();
+    } catch (error) {
+      toast.error('Failed to retry run');
+    }
+  };
+
+  // Loading state
+  if (runLoading || stepsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (runError || !run) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -26,10 +70,6 @@ export default function RunDetails() {
       </div>
     );
   }
-
-  const workflow = mockWorkflows.find(w => w.id === run.workflowId);
-  const agent = mockAgents.find(a => a.id === run.agentId);
-  const steps = mockRunSteps.filter(s => s.runId === run.id);
 
   return (
     <div className="space-y-6">
@@ -46,14 +86,36 @@ export default function RunDetails() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <X className="h-4 w-4 mr-2" />
-            Cancel
-          </Button>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
+          {run.status === 'running' && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleCancel}
+              disabled={cancelRun.isPending}
+            >
+              {cancelRun.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <X className="h-4 w-4 mr-2" />
+              )}
+              Cancel
+            </Button>
+          )}
+          {(run.status === 'failed' || run.status === 'cancelled') && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRetry}
+              disabled={retryRun.isPending}
+            >
+              {retryRun.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Retry
+            </Button>
+          )}
         </div>
       </div>
 

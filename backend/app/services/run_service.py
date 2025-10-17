@@ -19,14 +19,17 @@ class RunService:
         """Create new run"""
         run = WorkflowExecution(
             workflow_id=UUID(run_data.workflow_id),
-            agent_id=UUID(run_data.agent_id),
-            project_id=UUID("00000000-0000-0000-0000-000000000000"),  # Will be set from workflow
             status=ExecutionStatus.PENDING,
-            env=run_data.env,
             started_at=datetime.now(timezone.utc),
             input_data=run_data.input_data,
-            config=run_data.config,
-            metadata_={"triggered_by": str(user_id), "trigger": run_data.trigger}
+            metadata_={
+                "triggered_by": str(user_id),
+                "trigger": run_data.trigger,
+                "agent_id": run_data.agent_id,
+                "project_id": "00000000-0000-0000-0000-000000000000",  # Will be set from workflow
+                "env": run_data.env,
+                "config": run_data.config or {}
+            }
         )
         
         db.add(run)
@@ -55,7 +58,8 @@ class RunService:
         if status:
             query = query.where(WorkflowExecution.status == ExecutionStatus(status))
         if agent_id:
-            query = query.where(WorkflowExecution.agent_id == UUID(agent_id))
+            # Filter by agent_id in metadata
+            query = query.where(WorkflowExecution.metadata_['agent_id'].astext == agent_id)
         if workflow_id:
             query = query.where(WorkflowExecution.workflow_id == UUID(workflow_id))
         
@@ -89,9 +93,9 @@ class RunService:
             return None
         
         run.status = ExecutionStatus.CANCELLED
-        run.ended_at = datetime.now(timezone.utc)
+        run.completed_at = datetime.now(timezone.utc)
         if run.started_at:
-            run.duration_ms = int((run.ended_at - run.started_at).total_seconds() * 1000)
+            run.duration_seconds = int((run.completed_at - run.started_at).total_seconds())
         
         await db.commit()
         await db.refresh(run)
@@ -103,6 +107,35 @@ class RunService:
         result = await db.execute(
             select(WorkflowStep)
             .where(WorkflowStep.execution_id == run_id)
-            .order_by(WorkflowStep.step_index)
+            .order_by(WorkflowStep.created_at)  # Use created_at instead of step_index
         )
         return list(result.scalars().all())
+    
+    @staticmethod
+    async def retry(db: AsyncSession, run_id: UUID, user_id: UUID) -> Optional[WorkflowExecution]:
+        """Retry a failed/cancelled run by creating a new run with same parameters"""
+        original_run = await RunService.get_by_id(db, run_id)
+        if not original_run or original_run.status not in [ExecutionStatus.FAILED, ExecutionStatus.CANCELLED]:
+            return None
+        
+        # Create new run with same parameters
+        new_run = WorkflowExecution(
+            workflow_id=original_run.workflow_id,
+            status=ExecutionStatus.PENDING,
+            started_at=datetime.now(timezone.utc),
+            input_data=original_run.input_data,
+            metadata_={
+                "triggered_by": str(user_id),
+                "trigger": "retry",
+                "retried_from": str(run_id),
+                "agent_id": original_run.metadata_.get('agent_id'),
+                "project_id": original_run.metadata_.get('project_id'),
+                "env": original_run.metadata_.get('env', 'dev'),
+                "config": original_run.metadata_.get('config', {})
+            }
+        )
+        
+        db.add(new_run)
+        await db.commit()
+        await db.refresh(new_run)
+        return new_run

@@ -85,3 +85,19 @@ async def get_run_steps(
     """Get all steps for a run"""
     steps = await RunService.get_steps(db, UUID(run_id))
     return [RunStepResponse.model_validate(s) for s in steps]
+
+
+@router.post("/{run_id}/retry", response_model=RunResponse)
+async def retry_run(
+    run_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RunResponse:
+    """Retry a failed or cancelled run"""
+    run = await RunService.retry(db, UUID(run_id), current_user.id)
+    if not run:
+        raise HTTPException(
+            status_code=404, 
+            detail="Run not found or cannot be retried (only failed/cancelled runs can be retried)"
+        )
+    return RunResponse.model_validate(run)

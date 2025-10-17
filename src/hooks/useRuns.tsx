@@ -15,11 +15,12 @@ interface RunsListResponse {
 }
 
 interface CreateRunRequest {
-  workflowId: string;
-  agentId: string;
+  workflow_id: string;
+  agent_id: string;
   env: 'dev' | 'staging' | 'prod';
-  trigger?: 'manual' | 'schedule' | 'webhook' | 'event';
+  trigger?: string;
   input_data?: Record<string, unknown>;
+  config?: Record<string, unknown>;
 }
 
 /**

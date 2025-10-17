@@ -36,17 +36,27 @@ class RunStepResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
     id: str
-    run_id: str = Field(serialization_alias="runId")
-    idx: int
-    type: str
-    name: str
-    started_at: datetime = Field(serialization_alias="startedAt")
-    ended_at: datetime = Field(serialization_alias="endedAt")
-    duration_ms: int = Field(serialization_alias="durationMs")
-    success: bool
+    execution_id: str = Field(serialization_alias="runId", validation_alias="execution_id")
+    step_id: str = Field(default="0", serialization_alias="idx", validation_alias="step_id")  # Maps step_id to idx
+    step_type: str = Field(serialization_alias="type", validation_alias="step_type")  # Maps step_type to type
+    step_name: str = Field(serialization_alias="name", validation_alias="step_name")  # Maps step_name to name
+    started_at: Optional[datetime] = Field(None, serialization_alias="startedAt")
+    completed_at: Optional[datetime] = Field(None, serialization_alias="endedAt", validation_alias="completed_at")  # Maps completed_at to endedAt
+    duration_seconds: Optional[int] = Field(None)
+    status: str  # Keep status field
     error_message: Optional[str] = Field(None, serialization_alias="errorMessage")
-    request: Optional[Dict[str, Any]] = Field(None, serialization_alias="request")
-    response: Optional[Dict[str, Any]] = Field(None, serialization_alias="response")
+    input_data: Optional[Dict[str, Any]] = Field(None, serialization_alias="request", validation_alias="input_data")  # Maps input_data to request
+    output_data: Optional[Dict[str, Any]] = Field(None, serialization_alias="response", validation_alias="output_data")  # Maps output_data to response
+    
+    @property
+    def duration_ms(self) -> Optional[int]:
+        """Convert duration_seconds to milliseconds for frontend"""
+        return self.duration_seconds * 1000 if self.duration_seconds else None
+    
+    @property
+    def success(self) -> bool:
+        """Map status to success boolean"""
+        return self.status == 'COMPLETED'
 
 
 class RunResponse(BaseModel):

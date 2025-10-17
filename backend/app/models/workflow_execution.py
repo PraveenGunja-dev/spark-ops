@@ -31,12 +31,15 @@ class WorkflowExecution(Base, TimestampMixin):
     workflow_id = Column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False, index=True)
     triggered_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     
+    # Additional runtime context (stored in metadata for now, can be migrated to columns later)
+    # agent_id, project_id, env are accessed via properties from metadata
+    
     status = Column(SQLEnum(ExecutionStatus), default=ExecutionStatus.PENDING, nullable=False, index=True)
     
     # Execution tracking
     started_at = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
-    duration_seconds = Column(Integer, nullable=True)
+    completed_at = Column(DateTime, nullable=True)  # Maps to ended_at in API
+    duration_seconds = Column(Integer, nullable=True)  # Maps to duration_ms in API (converted)
     
     # Input/Output
     input_data = Column(JSONB, default=dict, nullable=False)
@@ -46,13 +49,41 @@ class WorkflowExecution(Base, TimestampMixin):
     error_message = Column(Text, nullable=True)
     error_details = Column(JSONB, default=dict, nullable=False)
     
-    # Metadata
+    # Metadata (stores agent_id, project_id, env, etc.)
     metadata_ = Column("metadata", JSONB, default=dict, nullable=False)
     
     # Relationships
     workflow = relationship("Workflow", back_populates="executions")
     triggered_by = relationship("User")
     steps = relationship("WorkflowStep", back_populates="execution", cascade="all, delete-orphan")
+    
+    # Properties for API compatibility
+    @property
+    def agent_id(self):
+        """Get agent_id from metadata"""
+        agent_id_str = self.metadata_.get('agent_id')
+        return UUID(agent_id_str) if agent_id_str else None
+    
+    @property
+    def project_id(self):
+        """Get project_id from metadata"""
+        project_id_str = self.metadata_.get('project_id')
+        return UUID(project_id_str) if project_id_str else None
+    
+    @property
+    def env(self):
+        """Get environment from metadata"""
+        return self.metadata_.get('env', 'dev')
+    
+    @property
+    def ended_at(self):
+        """Alias for completed_at"""
+        return self.completed_at
+    
+    @property
+    def duration_ms(self):
+        """Convert duration_seconds to milliseconds"""
+        return self.duration_seconds * 1000 if self.duration_seconds else None
 
     def __repr__(self):
         return f"<WorkflowExecution {self.id} ({self.status})>"

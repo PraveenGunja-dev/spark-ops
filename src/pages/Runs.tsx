@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,16 +12,9 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { StatusBadge } from '@/components/StatusBadge';
 import { TableSkeleton } from '@/components/ui/loading-skeleton';
-import { Search, Filter, Play, Square, Eye } from 'lucide-react';
+import { Search, RefreshCw, X, ExternalLink, RotateCcw } from 'lucide-react';
 import { useRuns } from '@/hooks/useRuns';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { useAgents } from '@/hooks/useAgents';
@@ -28,11 +22,17 @@ import { useProject } from '@/contexts/ProjectContext';
 import { ProjectSelector } from '@/components/ProjectSelector';
 import { CreateRunDialog } from '@/components/runs/CreateRunDialog';
 import { Pagination } from '@/components/ui/pagination';
+import { MultiSelectFilter, type FilterOption } from '@/components/filters/MultiSelectFilter';
+import { DateRangePicker, type DateRange } from '@/components/filters/DateRangePicker';
+import { FilterChips } from '@/components/filters/FilterChips';
+import { SavedFilters } from '@/components/filters/SavedFilters';
 
 export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
@@ -40,12 +40,12 @@ export default function Runs() {
   const { selectedProjectId } = useProject();
   
   // Fetch data
-  const { data: runsData, isLoading } = useRuns(
+  const { data: runsData, isLoading, refetch } = useRuns(
     page,
     pageSize,
     {
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      agentId: agentFilter !== 'all' ? agentFilter : undefined,
+      status: selectedStatuses.length > 0 ? selectedStatuses[0] : undefined,
+      agentId: selectedAgents.length > 0 ? selectedAgents[0] : undefined,
     }
   );
   
@@ -70,6 +70,78 @@ export default function Runs() {
     return agents.find(a => a.id === agentId)?.name || agentId;
   };
 
+  // Status filter options
+  const statusOptions: FilterOption[] = [
+    { value: 'queued', label: 'Queued', count: runs.filter(r => r.status === 'queued').length },
+    { value: 'running', label: 'Running', count: runs.filter(r => r.status === 'running').length },
+    { value: 'succeeded', label: 'Succeeded', count: runs.filter(r => r.status === 'succeeded').length },
+    { value: 'failed', label: 'Failed', count: runs.filter(r => r.status === 'failed').length },
+    { value: 'cancelled', label: 'Cancelled', count: runs.filter(r => r.status === 'cancelled').length },
+    { value: 'timeout', label: 'Timeout', count: runs.filter(r => r.status === 'timeout').length },
+  ];
+
+  // Environment filter options
+  const envOptions: FilterOption[] = [
+    { value: 'dev', label: 'Development' },
+    { value: 'staging', label: 'Staging' },
+    { value: 'prod', label: 'Production' },
+  ];
+
+  // Agent filter options
+  const agentOptions: FilterOption[] = agents.map(agent => ({
+    value: agent.id,
+    label: agent.name,
+  }));
+
+  // Filter chips
+  const activeFilters = [
+    ...selectedStatuses.map(status => ({
+      type: 'multi' as const,
+      label: 'Status',
+      value: selectedStatuses,
+      onRemove: () => setSelectedStatuses([]),
+    })),
+    ...selectedEnvironments.map(env => ({
+      type: 'multi' as const,
+      label: 'Environment',
+      value: selectedEnvironments,
+      onRemove: () => setSelectedEnvironments([]),
+    })),
+    ...selectedAgents.map(agentId => ({
+      type: 'multi' as const,
+      label: 'Agent',
+      value: selectedAgents,
+      onRemove: () => setSelectedAgents([]),
+    })),
+    ...(dateRange?.from ? [({
+      type: 'date' as const,
+      label: 'Date Range',
+      value: dateRange,
+      onRemove: () => setDateRange(undefined),
+    })] : []),
+  ];
+
+  const handleClearAllFilters = () => {
+    setSelectedStatuses([]);
+    setSelectedEnvironments([]);
+    setSelectedAgents([]);
+    setDateRange(undefined);
+  };
+
+  const handleApplyFilters = (filters: Record<string, any>) => {
+    if (filters.statuses) setSelectedStatuses(filters.statuses);
+    if (filters.environments) setSelectedEnvironments(filters.environments);
+    if (filters.agents) setSelectedAgents(filters.agents);
+    if (filters.dateRange) setDateRange(filters.dateRange);
+  };
+
+  const currentFilters = {
+    statuses: selectedStatuses,
+    environments: selectedEnvironments,
+    agents: selectedAgents,
+    dateRange,
+  };
+
   const uniqueAgents = Array.from(new Set(runs.map(run => run.agentId)));
 
   return (
@@ -87,50 +159,72 @@ export default function Runs() {
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search runs by ID..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search runs by ID..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <MultiSelectFilter
+                  title="Status"
+                  options={statusOptions}
+                  selected={selectedStatuses}
+                  onChange={setSelectedStatuses}
+                  className="w-[160px]"
+                />
+                
+                <MultiSelectFilter
+                  title="Environment"
+                  options={envOptions}
+                  selected={selectedEnvironments}
+                  onChange={setSelectedEnvironments}
+                  className="w-[160px]"
+                />
+                
+                <MultiSelectFilter
+                  title="Agent"
+                  options={agentOptions}
+                  selected={selectedAgents}
+                  onChange={setSelectedAgents}
+                  className="w-[160px]"
+                />
+                
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={setDateRange}
+                  placeholder="Date range"
+                />
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => refetch()}
+                  title="Refresh"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                
+                <SavedFilters
+                  pageKey="runs"
+                  currentFilters={currentFilters}
+                  onApplyFilter={handleApplyFilters}
+                />
+              </div>
+            </div>
+            
+            {/* Active Filters */}
+            {activeFilters.length > 0 && (
+              <FilterChips
+                filters={activeFilters}
+                onClearAll={handleClearAllFilters}
               />
-            </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="queued">Queued</SelectItem>
-                  <SelectItem value="running">Running</SelectItem>
-                  <SelectItem value="succeeded">Succeeded</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="timeout">Timeout</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={agentFilter} onValueChange={setAgentFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Agents</SelectItem>
-                  {uniqueAgents.map(agentId => (
-                    <SelectItem key={agentId} value={agentId}>
-                      {getAgentName(agentId)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -174,17 +268,15 @@ export default function Runs() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Play className="h-4 w-4 mr-1" />
-                        Replay
-                      </Button>
-                      <Button variant="outline" size="sm" disabled={run.status !== 'running'}>
-                        <Square className="h-4 w-4 mr-1" />
-                        Terminate
+                      <Link to={`/runs/${run.id}`}>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Button variant="outline" size="sm" disabled>
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        Retry
                       </Button>
                     </div>
                   </TableCell>

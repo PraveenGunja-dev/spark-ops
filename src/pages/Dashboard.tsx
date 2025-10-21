@@ -22,7 +22,11 @@ import {
 } from 'recharts';
 import { KpiCard } from '@/components/KpiCard';
 import { StatusBadge } from '@/components/StatusBadge';
-import { mockRuns, mockAgents, mockTools } from '@/lib/mockData';
+import { useRuns } from '@/hooks/useRuns';
+import { useAgents } from '@/hooks/useAgents';
+import { useAuth } from '@/hooks/useAuth';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
 import { 
   Play, 
   Bot, 
@@ -74,19 +78,34 @@ const recentEvents = [
 ];
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const { selectedProjectId } = useProject();
+  
+  // Fetch real data
+  const { data: runsData, isLoading: runsLoading } = useRuns(1, 100);
+  const { data: agentsData, isLoading: agentsLoading } = useAgents(selectedProjectId || '', 1, 100);
+  
+  const runs = runsData?.runs || [];
+  const agents = agentsData?.items || [];
+  
   // Calculate KPIs
-  const activeRuns = mockRuns.filter(run => run.status === 'running').length;
-  const successRate = mockRuns.filter(run => run.status === 'succeeded').length / mockRuns.length * 100;
-  const failedRuns = mockRuns.filter(run => run.status === 'failed').length;
-  const agentsOnline = mockAgents.filter(agent => agent.health === 'healthy').length;
-  const totalCost = mockRuns.reduce((sum, run) => sum + (run.usdCost || 0), 0);
-  const avgLatency = mockRuns.reduce((sum, run) => sum + (run.durationMs || 0), 0) / mockRuns.length;
+  const activeRuns = runs.filter(run => run.status === 'running').length;
+  const successRate = runs.length > 0 ? runs.filter(run => run.status === 'succeeded').length / runs.length * 100 : 0;
+  const failedRuns = runs.filter(run => run.status === 'failed').length;
+  const agentsOnline = agents.filter(agent => agent.health === 'healthy').length;
+  const totalCost = runs.reduce((sum, run) => sum + (run.usdCost || 0), 0);
+  const avgLatency = runs.length > 0 ? runs.reduce((sum, run) => sum + (run.durationMs || 0), 0) / runs.length : 0;
+  
+  const isLoading = runsLoading || agentsLoading;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Command Center</h1>
-        <p className="text-muted-foreground">Real-time overview of your autonomous workforce</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Command Center</h1>
+          <p className="text-muted-foreground">Real-time overview of your autonomous workforce</p>
+        </div>
+        <ProjectSelector />
       </div>
 
       {/* Maestro-inspired KPI Cards - High-contrast with minimal text */}

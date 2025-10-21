@@ -21,7 +21,7 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Orchestrator Card */}
           <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
             <CardHeader className="pb-4">
@@ -62,7 +62,7 @@ export default function Index() {
           </Card>
 
           {/* Maestro Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-accent/50 relative overflow-hidden">
+          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/20 to-transparent rounded-full -mr-16 -mt-16" />
             <CardHeader className="pb-4">
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 via-accent to-pink-500 flex items-center justify-center mb-4">
@@ -81,19 +81,19 @@ export default function Index() {
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                   <span>Visual workflow builder with drag-and-drop</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                   <span>AI agent collaboration and orchestration</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                   <span>Real-time observability and tracing</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
                   <span>Advanced governance and safety policies</span>
                 </li>
               </ul>
@@ -110,7 +110,7 @@ export default function Index() {
           </Card>
 
           {/* Studio Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
+          {/* <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
             <CardHeader className="pb-4">
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4">
                 <Code2 className="h-7 w-7 text-white" />
@@ -146,7 +146,7 @@ export default function Index() {
                 </Button>
               </Link>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <div className="text-center mt-16">

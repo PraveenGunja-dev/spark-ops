@@ -2,80 +2,119 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageSkeleton } from "@/components/ui/loading-skeleton";
 import { AppLayout } from "./components/layout/AppLayout";
 import { MaestroLayout } from "./components/layout/MaestroLayout";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Runs from "./pages/Runs";
-import RunDetails from "./pages/RunDetails";
-import Agents from "./pages/Agents";
-import Tools from "./pages/Tools";
-import Approvals from "./pages/Approvals";
-import Evaluations from "./pages/Evaluations";
-import Analytics from "./pages/Analytics";
-import Policies from "./pages/Policies";
-import Settings from "./pages/Settings";
-import Profile from "./pages/Profile";
-import Teams from "./pages/Teams.tsx";
-import Maestro from "./pages/Maestro";
-import NotFound from "./pages/NotFound";
-import MaestroDashboard from "./pages/maestro/MaestroDashboard";
-import MaestroAgents from "./pages/maestro/MaestroAgents";
-import MaestroWorkflows from "./pages/maestro/MaestroWorkflows";
-import MaestroObservability from "./pages/maestro/MaestroObservability";
-import MaestroGovernance from "./pages/maestro/MaestroGovernance";
-import MaestroIntegrations from "./pages/maestro/MaestroIntegrations";
-import MaestroSettings from "./pages/maestro/MaestroSettings";
-import { StudioLayout } from "./components/layout/StudioLayout";
-import StudioWorkspace from "./pages/studio/StudioWorkspace";
-import StudioTemplates from "./pages/studio/StudioTemplates";
+import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProjectProvider } from "@/contexts/ProjectContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-const queryClient = new QueryClient();
+// Lazy load pages for code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const TestPage = lazy(() => import("./pages/TestPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Runs = lazy(() => import("./pages/Runs"));
+const RunDetails = lazy(() => import("./pages/RunDetails"));
+const Agents = lazy(() => import("./pages/Agents"));
+const AgentDetails = lazy(() => import("./pages/AgentDetails"));
+const Workflows = lazy(() => import("./pages/Workflows"));
+const Tools = lazy(() => import("./pages/Tools"));
+const Approvals = lazy(() => import("./pages/Approvals"));
+const Evaluations = lazy(() => import("./pages/Evaluations"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Policies = lazy(() => import("./pages/Policies"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Teams = lazy(() => import("./pages/Teams"));
+const WorkflowBuilder = lazy(() => import("./pages/WorkflowBuilder"));
+const WorkflowStudio = lazy(() => import("./pages/WorkflowStudio"));
+const Maestro = lazy(() => import("./pages/Maestro"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const MaestroDashboard = lazy(() => import("./pages/maestro/MaestroDashboard"));
+const MaestroAgents = lazy(() => import("./pages/maestro/MaestroAgents")); // Original component
+const MaestroWorkflows = lazy(() => import("./pages/maestro/MaestroWorkflows"));
+const MaestroObservability = lazy(() => import("./pages/maestro/MaestroObservability"));
+const MaestroGovernance = lazy(() => import("./pages/maestro/MaestroGovernance"));
+const MaestroIntegrations = lazy(() => import("./pages/maestro/MaestroIntegrations"));
+const MaestroSettings = lazy(() => import("./pages/maestro/MaestroSettings"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30000, // 30 seconds
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Home */}
-          <Route path="/" element={<Index />} />
-          
-          {/* Orchestrator Routes */}
-          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/runs" element={<AppLayout><Runs /></AppLayout>} />
-          <Route path="/runs/:id" element={<AppLayout><RunDetails /></AppLayout>} />
-          <Route path="/agents" element={<AppLayout><Agents /></AppLayout>} />
-          <Route path="/tools" element={<AppLayout><Tools /></AppLayout>} />
-          <Route path="/approvals" element={<AppLayout><Approvals /></AppLayout>} />
-          <Route path="/evaluations" element={<AppLayout><Evaluations /></AppLayout>} />
-          <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
-          <Route path="/policies" element={<AppLayout><Policies /></AppLayout>} />
-          <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-          <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
-          <Route path="/teams" element={<AppLayout><Teams /></AppLayout>} />
-          
-          {/* Maestro Routes */}
-          <Route path="/maestro" element={<MaestroLayout><MaestroDashboard /></MaestroLayout>} />
-          <Route path="/maestro/agents" element={<MaestroLayout><MaestroAgents /></MaestroLayout>} />
-          <Route path="/maestro/workflows" element={<MaestroLayout><MaestroWorkflows /></MaestroLayout>} />
-          <Route path="/maestro/observability" element={<MaestroLayout><MaestroObservability /></MaestroLayout>} />
-          <Route path="/maestro/governance" element={<MaestroLayout><MaestroGovernance /></MaestroLayout>} />
-          <Route path="/maestro/integrations" element={<MaestroLayout><MaestroIntegrations /></MaestroLayout>} />
-          <Route path="/maestro/settings" element={<MaestroLayout><MaestroSettings /></MaestroLayout>} />
-          
-          {/* Studio Routes */}
-          <Route path="/studio" element={<StudioLayout><StudioWorkspace /></StudioLayout>} />
-          <Route path="/studio/templates" element={<StudioLayout><StudioTemplates /></StudioLayout>} />
-          
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="theme" enableSystem={false}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <ProjectProvider>
+                <Suspense fallback={<PageSkeleton />}>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Test Route */}
+                  <Route path="/test" element={<ProtectedRoute><AppLayout><TestPage /></AppLayout></ProtectedRoute>} />
+                  
+                  {/* Protected Orchestrator Routes */}
+                  <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+                  <Route path="/runs" element={<ProtectedRoute><AppLayout><Runs /></AppLayout></ProtectedRoute>} />
+                  <Route path="/runs/:id" element={<ProtectedRoute><AppLayout><RunDetails /></AppLayout></ProtectedRoute>} />
+                  <Route path="/agents" element={<ProtectedRoute><AppLayout><Agents /></AppLayout></ProtectedRoute>} />
+                  <Route path="/agents/:id" element={<ProtectedRoute><AppLayout><AgentDetails /></AppLayout></ProtectedRoute>} />
+                  <Route path="/workflows" element={<ProtectedRoute><AppLayout><Workflows /></AppLayout></ProtectedRoute>} />
+                  <Route path="/tools" element={<ProtectedRoute><AppLayout><Tools /></AppLayout></ProtectedRoute>} />
+                  <Route path="/approvals" element={<ProtectedRoute><AppLayout><Approvals /></AppLayout></ProtectedRoute>} />
+                  <Route path="/evaluations" element={<ProtectedRoute><AppLayout><Evaluations /></AppLayout></ProtectedRoute>} />
+                  <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
+                  <Route path="/policies" element={<ProtectedRoute requiredRole="admin"><AppLayout><Policies /></AppLayout></ProtectedRoute>} />
+                  <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
+                  <Route path="/teams" element={<ProtectedRoute requiredRole="admin"><AppLayout><Teams /></AppLayout></ProtectedRoute>} />
+                  <Route path="/workflows/builder" element={<ProtectedRoute><AppLayout><WorkflowBuilder /></AppLayout></ProtectedRoute>} />
+                  <Route path="/workflows/studio" element={<ProtectedRoute><WorkflowStudio /></ProtectedRoute>} />
+                  
+                  {/* Protected Maestro Routes */}
+                  <Route path="/maestro" element={<ProtectedRoute><MaestroLayout><MaestroDashboard /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/agents" element={<ProtectedRoute><MaestroLayout><MaestroAgents /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/workflows" element={<ProtectedRoute><MaestroLayout><MaestroWorkflows /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/observability" element={<ProtectedRoute><MaestroLayout><MaestroObservability /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/governance" element={<ProtectedRoute requiredRole="admin"><MaestroLayout><MaestroGovernance /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/integrations" element={<ProtectedRoute requiredRole="developer"><MaestroLayout><MaestroIntegrations /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/settings" element={<ProtectedRoute><MaestroLayout><MaestroSettings /></MaestroLayout></ProtectedRoute>} />
+                  
+                  {/* Catch-all */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </ProjectProvider>
+            </AuthProvider>
+            {/* React Query DevTools - only in development */}
+            {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

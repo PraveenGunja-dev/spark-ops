@@ -1,4 +1,4 @@
-import { Search, Bell, User } from 'lucide-react';
+import { Search, Bell, User, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -11,11 +11,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
-import { mockUsers } from '@/lib/mockData';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 export function TopBar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+
+  // Determine current section based on URL
+  const getCurrentSection = () => {
+    if (location.pathname.startsWith('/maestro')) return 'maestro';
+    if (location.pathname.startsWith('/studio')) return 'studio';
+    if (location.pathname.startsWith('/dashboard') || 
+        location.pathname.startsWith('/runs') || 
+        location.pathname.startsWith('/agents') || 
+        location.pathname.startsWith('/workflows') || 
+        location.pathname.startsWith('/tools') || 
+        location.pathname.startsWith('/approvals') || 
+        location.pathname.startsWith('/evaluations') || 
+        location.pathname.startsWith('/analytics') || 
+        location.pathname.startsWith('/policies') || 
+        location.pathname.startsWith('/settings') || 
+        location.pathname.startsWith('/profile') || 
+        location.pathname.startsWith('/teams')) return 'orchestrator';
+    return 'home';
+  };
+
+  const currentSection = getCurrentSection();
 
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 gap-4">
@@ -32,6 +55,44 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Section Switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Layers className="h-4 w-4" />
+              <span className="capitalize">
+                {currentSection === 'orchestrator' ? 'Orchestrator' : 
+                 currentSection === 'maestro' ? 'Maestro' : "Home"}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel>Switch Platform</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onSelect={() => navigate('/dashboard')}
+              className={currentSection === 'orchestrator' ? 'bg-accent' : ''}
+            >
+              Orchestrator
+              <span className="text-xs text-muted-foreground ml-2">Traditional</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onSelect={() => navigate('/maestro')}
+              className={currentSection === 'maestro' ? 'bg-accent' : ''}
+            >
+              Maestro
+              <span className="text-xs text-muted-foreground ml-2">Agentic AI</span>
+            </DropdownMenuItem>
+            {/* <DropdownMenuItem 
+              onSelect={() => navigate('/studio')}
+              className={currentSection === 'studio' ? 'bg-accent' : ''}
+            >
+              Studio
+              <span className="text-xs text-muted-foreground ml-2">Visual Builder</span>
+            </DropdownMenuItem> */}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
@@ -66,13 +127,15 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{mockUsers[0].name}</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {user?.name || 'User'}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => navigate('/profile')}>Profile</DropdownMenuItem>
             <DropdownMenuItem>Team</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem onSelect={logout} className="text-red-600">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

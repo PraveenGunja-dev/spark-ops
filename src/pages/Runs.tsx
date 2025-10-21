@@ -19,31 +19,58 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Search, Filter, Play, Pause, Square, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { mockRuns, mockWorkflows, mockAgents } from '@/lib/mockData';
+import { TableSkeleton } from '@/components/ui/loading-skeleton';
+import { Search, Filter, Play, Square, Eye } from 'lucide-react';
+import { useRuns } from '@/hooks/useRuns';
+import { useWorkflows } from '@/hooks/useWorkflows';
+import { useAgents } from '@/hooks/useAgents';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
+import { CreateRunDialog } from '@/components/runs/CreateRunDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function Runs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
-  const filteredRuns = mockRuns.filter(run => {
-    const matchesSearch = run.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || run.status === statusFilter;
-    const matchesAgent = agentFilter === 'all' || run.agentId === agentFilter;
-    return matchesSearch && matchesStatus && matchesAgent;
-  });
+  // Get selected project from context
+  const { selectedProjectId } = useProject();
+  
+  // Fetch data
+  const { data: runsData, isLoading } = useRuns(
+    page,
+    pageSize,
+    {
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      agentId: agentFilter !== 'all' ? agentFilter : undefined,
+    }
+  );
+  
+  const { data: workflowsData } = useWorkflows(selectedProjectId || '', 1, 100);
+  const { data: agentsData } = useAgents(selectedProjectId || '', 1, 100);
+  
+  const runs = runsData?.runs || [];
+  const workflows = workflowsData?.items || [];
+  const agents = agentsData?.items || [];
+  const totalPages = runsData?.totalPages || 1;
+  
+  // Filter by search query (client-side for ID search)
+  const filteredRuns = runs.filter(run =>
+    run.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const getWorkflowName = (workflowId: string) => {
-    return mockWorkflows.find(w => w.id === workflowId)?.name || workflowId;
+    return workflows.find(w => w.id === workflowId)?.name || workflowId;
   };
 
   const getAgentName = (agentId: string) => {
-    return mockAgents.find(a => a.id === agentId)?.name || agentId;
+    return agents.find(a => a.id === agentId)?.name || agentId;
   };
 
-  const uniqueAgents = Array.from(new Set(mockRuns.map(run => run.agentId)));
+  const uniqueAgents = Array.from(new Set(runs.map(run => run.agentId)));
 
   return (
     <div className="space-y-6">
@@ -52,10 +79,10 @@ export default function Runs() {
           <h1 className="text-3xl font-bold">Runs</h1>
           <p className="text-muted-foreground">Live view of all active, completed, or failed runs</p>
         </div>
-        <Button>
-          <Play className="h-4 w-4 mr-2" />
-          Start New Run
-        </Button>
+        <div className="flex items-center gap-3">
+          <ProjectSelector />
+          <CreateRunDialog />
+        </div>
       </div>
 
       <Card>
@@ -107,6 +134,9 @@ export default function Runs() {
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <TableSkeleton rows={10} columns={8} />
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -162,8 +192,21 @@ export default function Runs() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {!isLoading && filteredRuns.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          total={runsData?.total || 0}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

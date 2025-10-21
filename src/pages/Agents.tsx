@@ -16,10 +16,53 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Bot, Play, Brain, Settings, BarChart3 } from 'lucide-react';
-import { mockAgents } from '@/lib/mockData';
+import { Bot, Play, Brain, Settings, BarChart3, Trash2, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAgents, useDeleteAgent } from '@/hooks/useAgents';
+import { useProject } from '@/contexts/ProjectContext';
+import { ProjectSelector } from '@/components/ProjectSelector';
+import { CreateAgentDialog } from '@/components/agents/CreateAgentDialog';
+import { EditAgentDialog } from '@/components/agents/EditAgentDialog';
+import { Pagination } from '@/components/ui/pagination';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function Agents() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [agentToDelete, setAgentToDelete] = useState<{ id: string; name: string } | null>(null);
+  
+  // Get selected project from context
+  const { selectedProjectId } = useProject();
+  
+  // Fetch agents
+  const { data, isLoading } = useAgents(selectedProjectId || '', page, pageSize);
+  const agents = data?.items || [];
+  const totalPages = data?.totalPages || 1;
+  
+  // Delete mutation
+  const deleteAgent = useDeleteAgent();
+  
+  const handleDeleteClick = (agent: { id: string; name: string }) => {
+    setAgentToDelete(agent);
+    setDeleteDialogOpen(true);
+  };
+  
+  const handleDeleteConfirm = async () => {
+    if (!agentToDelete) return;
+    
+    try {
+      await deleteAgent.mutateAsync(agentToDelete.id);
+      toast.success(`Agent "${agentToDelete.name}" deleted successfully`);
+      setDeleteDialogOpen(false);
+      setAgentToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+      toast.error('Failed to delete agent. Please try again.');
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -27,10 +70,10 @@ export default function Agents() {
           <h1 className="text-3xl font-bold">Agents</h1>
           <p className="text-muted-foreground">Registry of all autonomous agents in the system</p>
         </div>
-        <Button>
-          <Brain className="h-4 w-4 mr-2" />
-          Create New Agent
-        </Button>
+        <div className="flex items-center gap-3">
+          <ProjectSelector />
+          <CreateAgentDialog />
+        </div>
       </div>
 
       <Card>
@@ -55,13 +98,14 @@ export default function Agents() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockAgents.map((agent) => (
+              {agents.map((agent) => (
                 <TableRow key={agent.id}>
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
+                    <Link to={`/agents/${agent.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                       <Bot className="h-4 w-4 text-muted-foreground" />
                       {agent.name}
-                    </div>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </Link>
                   </TableCell>
                   <TableCell>v1.0</TableCell>
                   <TableCell>
@@ -81,13 +125,20 @@ export default function Agents() {
                   <TableCell>Ada Admin</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        <BarChart3 className="h-4 w-4 mr-1" />
-                        Metrics
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Policy
+                      <EditAgentDialog agent={agent} />
+                      <Link to={`/agents/${agent.id}`}>
+                        <Button variant="outline" size="sm">
+                          <BarChart3 className="h-4 w-4 mr-1" />
+                          View Details
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteClick(agent)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
                       </Button>
                     </div>
                   </TableCell>
@@ -97,6 +148,29 @@ export default function Agents() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {!isLoading && agents.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          total={data?.total || 0}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Agent"
+        itemName={agentToDelete?.name}
+        description={`This will permanently delete the agent "${agentToDelete?.name}". Any associated runs and configurations will be affected.`}
+        isDeleting={deleteAgent.isPending}
+      />
     </div>
   );
 }

@@ -23,6 +23,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Runs = lazy(() => import("./pages/Runs"));
 const RunDetails = lazy(() => import("./pages/RunDetails"));
 const Agents = lazy(() => import("./pages/Agents"));
+const AgentDetails = lazy(() => import("./pages/AgentDetails"));
 const Workflows = lazy(() => import("./pages/Workflows"));
 const Tools = lazy(() => import("./pages/Tools"));
 const Approvals = lazy(() => import("./pages/Approvals"));
@@ -79,6 +80,7 @@ const App = () => (
                   <Route path="/runs" element={<ProtectedRoute><AppLayout><Runs /></AppLayout></ProtectedRoute>} />
                   <Route path="/runs/:id" element={<ProtectedRoute><AppLayout><RunDetails /></AppLayout></ProtectedRoute>} />
                   <Route path="/agents" element={<ProtectedRoute><AppLayout><Agents /></AppLayout></ProtectedRoute>} />
+                  <Route path="/agents/:id" element={<ProtectedRoute><AppLayout><AgentDetails /></AppLayout></ProtectedRoute>} />
                   <Route path="/workflows" element={<ProtectedRoute><AppLayout><Workflows /></AppLayout></ProtectedRoute>} />
                   <Route path="/tools" element={<ProtectedRoute><AppLayout><Tools /></AppLayout></ProtectedRoute>} />
                   <Route path="/approvals" element={<ProtectedRoute><AppLayout><Approvals /></AppLayout></ProtectedRoute>} />

@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { mockUsers } from '@/lib/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 export function TopBar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 gap-4">
@@ -67,14 +68,14 @@ export function TopBar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              {mockUsers[0]?.name || 'User'}
+              {user?.name || 'User'}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => navigate('/profile')}>Profile</DropdownMenuItem>
             <DropdownMenuItem>Team</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem onSelect={logout} className="text-red-600">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

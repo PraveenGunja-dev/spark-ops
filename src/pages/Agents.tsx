@@ -16,7 +16,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Bot, Play, Brain, Settings, BarChart3, Trash2 } from 'lucide-react';
+import { Bot, Play, Brain, Settings, BarChart3, Trash2, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAgents, useDeleteAgent } from '@/hooks/useAgents';
 import { useProject } from '@/contexts/ProjectContext';
 import { ProjectSelector } from '@/components/ProjectSelector';
@@ -100,10 +101,11 @@ export default function Agents() {
               {agents.map((agent) => (
                 <TableRow key={agent.id}>
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
+                    <Link to={`/agents/${agent.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                       <Bot className="h-4 w-4 text-muted-foreground" />
                       {agent.name}
-                    </div>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </Link>
                   </TableCell>
                   <TableCell>v1.0</TableCell>
                   <TableCell>
@@ -124,10 +126,12 @@ export default function Agents() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <EditAgentDialog agent={agent} />
-                      <Button variant="outline" size="sm">
-                        <BarChart3 className="h-4 w-4 mr-1" />
-                        Metrics
-                      </Button>
+                      <Link to={`/agents/${agent.id}`}>
+                        <Button variant="outline" size="sm">
+                          <BarChart3 className="h-4 w-4 mr-1" />
+                          View Details
+                        </Button>
+                      </Link>
                       <Button
                         variant="outline"
                         size="sm"

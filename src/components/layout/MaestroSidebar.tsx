@@ -8,6 +8,7 @@ import {
   Plug,
   Home,
   Settings,
+  AlertCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,6 +27,7 @@ const mainItems = [
   { title: 'AI Agents', url: '/maestro/agents', icon: Bot },
   { title: 'Workflows', url: '/maestro/workflows', icon: Workflow },
   { title: 'Observability', url: '/maestro/observability', icon: LineChart },
+  { title: 'Human-in-the-Loop', url: '/maestro/hitl', icon: AlertCircle },
   { title: 'Governance', url: '/maestro/governance', icon: Shield },
   { title: 'Integrations', url: '/maestro/integrations', icon: Plug },
 ];

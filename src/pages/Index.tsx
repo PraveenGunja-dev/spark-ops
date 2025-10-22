@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Workflow, ArrowRight, Sparkles, Layers, Code2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Brain, Zap, Shield, Eye } from 'lucide-react';
 
 export default function Index() {
   return (
@@ -9,149 +9,112 @@ export default function Index() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Layers className="h-8 w-8 text-primary-foreground" />
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 via-accent to-pink-500 flex items-center justify-center animate-pulse">
+              <Sparkles className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            AI Automation Platform
+          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-accent to-pink-500 bg-clip-text text-transparent">
+            Spark-Ops Maestro
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose your interface: Traditional orchestration or next-generation agentic automation
+          <p className="text-2xl text-muted-foreground max-w-3xl mx-auto mb-2">
+            AI Agent Platform
+          </p>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Powered by Agentic Process Automation (APA) execution layer
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Orchestrator Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
+        <div className="max-w-4xl mx-auto mb-12">
+          <Card className="group hover:shadow-2xl transition-all duration-300 border-2 hover:border-primary/50 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent/20 to-transparent rounded-full -mr-32 -mt-32" />
             <CardHeader className="pb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-4">
-                <Bot className="h-7 w-7 text-white" />
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 via-accent to-pink-500 flex items-center justify-center mb-4">
+                <Sparkles className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl">Orchestrator</CardTitle>
-              <CardDescription className="text-base">
-                Traditional process automation with full control and visibility
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Manage runs, agents, tools, and workflows</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Detailed monitoring and analytics</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Approval workflows and governance</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Queue management and scheduling</span>
-                </li>
-              </ul>
-              <Link to="/dashboard" className="block">
-                <Button className="w-full group-hover:shadow-lg transition-all gradient-primary" size="lg">
-                  Open Orchestrator
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Maestro Card */}
-          <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/20 to-transparent rounded-full -mr-16 -mt-16" />
-            <CardHeader className="pb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 via-accent to-pink-500 flex items-center justify-center mb-4">
-                <Sparkles className="h-7 w-7 text-white" />
-              </div>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                Maestro
-                <span className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-normal">
-                  Next-Gen
+              <CardTitle className="text-3xl flex items-center gap-3">
+                Maestro Platform
+                <span className="text-sm px-3 py-1 rounded-full bg-gradient-to-r from-accent/20 to-primary/20 text-accent font-normal">
+                  Powered by APA
                 </span>
               </CardTitle>
-              <CardDescription className="text-base">
-                Agentic AI orchestration with visual workflow design
+              <CardDescription className="text-lg mt-2">
+                Manage and monitor autonomous AI agents. APA (Agentic Process Automation) serves as the intelligent execution layer underneath
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Visual workflow builder with drag-and-drop</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>AI agent collaboration and orchestration</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Real-time observability and tracing</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Advanced governance and safety policies</span>
-                </li>
-              </ul>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
+                  <Brain className="h-6 w-6 text-purple-500 shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">ReAct Reasoning</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Agents think step-by-step, analyze situations, and make intelligent decisions
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
+                  <Zap className="h-6 w-6 text-accent shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Semantic Memory</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Vector-based memory enables agents to learn and recall from past experiences
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
+                  <Shield className="h-6 w-6 text-blue-500 shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Human-in-the-Loop</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Safety controls with approval workflows for high-risk actions
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
+                  <Eye className="h-6 w-6 text-green-500 shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Full Observability</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Real-time trace visualization and performance monitoring
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <Link to="/maestro" className="block">
                 <Button 
-                  className="w-full mt-6 group-hover:shadow-lg transition-all gradient-hero" 
+                  className="w-full mt-6 group-hover:shadow-lg transition-all gradient-hero text-lg py-6" 
                   size="lg"
                 >
-                  Open Maestro
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  Launch Maestro Platform
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
+
+              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-4 border-t">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span>LLM Powered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span>Vector Memory</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span>Multi-Agent</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          {/* Studio Card */}
-          {/* <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50">
-            <CardHeader className="pb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4">
-                <Code2 className="h-7 w-7 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Studio</CardTitle>
-              <CardDescription className="text-base">
-                Visual automation designer and workflow builder
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Drag-and-drop workflow designer</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Automation templates and libraries</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Real-time collaboration and versioning</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                  <span>Integrated debugging and testing</span>
-                </li>
-              </ul>
-              <Link to="/studio" className="block">
-                <Button className="w-full group-hover:shadow-lg transition-all gradient-primary" size="lg">
-                  Open Studio
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card> */}
         </div>
 
-        <div className="text-center mt-16">
-          <p className="text-sm text-muted-foreground">
-            Both platforms share the same backend infrastructure and data
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            Maestro Interface + APA Execution Layer
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Built with OpenAI GPT-4, Anthropic Claude, ChromaDB, and FastAPI
           </p>
         </div>
       </div>

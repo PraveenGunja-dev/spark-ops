@@ -3,11 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageSkeleton } from "@/components/ui/loading-skeleton";
-import { AppLayout } from "./components/layout/AppLayout";
 import { MaestroLayout } from "./components/layout/MaestroLayout";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -18,32 +17,22 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const TestPage = lazy(() => import("./pages/TestPage"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Runs = lazy(() => import("./pages/Runs"));
-const RunDetails = lazy(() => import("./pages/RunDetails"));
-const Agents = lazy(() => import("./pages/Agents"));
-const AgentDetails = lazy(() => import("./pages/AgentDetails"));
-const Workflows = lazy(() => import("./pages/Workflows"));
-const Tools = lazy(() => import("./pages/Tools"));
-const Approvals = lazy(() => import("./pages/Approvals"));
-const Evaluations = lazy(() => import("./pages/Evaluations"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const Policies = lazy(() => import("./pages/Policies"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Teams = lazy(() => import("./pages/Teams"));
-const WorkflowBuilder = lazy(() => import("./pages/WorkflowBuilder"));
-const WorkflowStudio = lazy(() => import("./pages/WorkflowStudio"));
-const Maestro = lazy(() => import("./pages/Maestro"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// APA/Maestro Pages
 const MaestroDashboard = lazy(() => import("./pages/maestro/MaestroDashboard"));
-const MaestroAgents = lazy(() => import("./pages/maestro/MaestroAgents")); // Original component
+const MaestroAgents = lazy(() => import("./pages/maestro/MaestroAgents"));
 const MaestroWorkflows = lazy(() => import("./pages/maestro/MaestroWorkflows"));
 const MaestroObservability = lazy(() => import("./pages/maestro/MaestroObservability"));
 const MaestroGovernance = lazy(() => import("./pages/maestro/MaestroGovernance"));
 const MaestroIntegrations = lazy(() => import("./pages/maestro/MaestroIntegrations"));
 const MaestroSettings = lazy(() => import("./pages/maestro/MaestroSettings"));
+
+// Keep essential APA pages
+const AgentDetails = lazy(() => import("./pages/AgentDetails"));
+const HITLDashboard = lazy(() => import("./pages/HITLDashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Teams = lazy(() => import("./pages/Teams"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,35 +61,24 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   
-                  {/* Test Route */}
-                  <Route path="/test" element={<ProtectedRoute><AppLayout><TestPage /></AppLayout></ProtectedRoute>} />
+                  {/* Redirect old routes to Maestro */}
+                  <Route path="/dashboard" element={<Navigate to="/maestro" replace />} />
+                  <Route path="/orchestrator/*" element={<Navigate to="/maestro" replace />} />
                   
-                  {/* Protected Orchestrator Routes */}
-                  <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
-                  <Route path="/runs" element={<ProtectedRoute><AppLayout><Runs /></AppLayout></ProtectedRoute>} />
-                  <Route path="/runs/:id" element={<ProtectedRoute><AppLayout><RunDetails /></AppLayout></ProtectedRoute>} />
-                  <Route path="/agents" element={<ProtectedRoute><AppLayout><Agents /></AppLayout></ProtectedRoute>} />
-                  <Route path="/agents/:id" element={<ProtectedRoute><AppLayout><AgentDetails /></AppLayout></ProtectedRoute>} />
-                  <Route path="/workflows" element={<ProtectedRoute><AppLayout><Workflows /></AppLayout></ProtectedRoute>} />
-                  <Route path="/tools" element={<ProtectedRoute><AppLayout><Tools /></AppLayout></ProtectedRoute>} />
-                  <Route path="/approvals" element={<ProtectedRoute><AppLayout><Approvals /></AppLayout></ProtectedRoute>} />
-                  <Route path="/evaluations" element={<ProtectedRoute><AppLayout><Evaluations /></AppLayout></ProtectedRoute>} />
-                  <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
-                  <Route path="/policies" element={<ProtectedRoute requiredRole="admin"><AppLayout><Policies /></AppLayout></ProtectedRoute>} />
-                  <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
-                  <Route path="/teams" element={<ProtectedRoute requiredRole="admin"><AppLayout><Teams /></AppLayout></ProtectedRoute>} />
-                  <Route path="/workflows/builder" element={<ProtectedRoute><AppLayout><WorkflowBuilder /></AppLayout></ProtectedRoute>} />
-                  <Route path="/workflows/studio" element={<ProtectedRoute><WorkflowStudio /></ProtectedRoute>} />
-                  
-                  {/* Protected Maestro Routes */}
+                  {/* APA/Maestro Routes (Main Application) */}
                   <Route path="/maestro" element={<ProtectedRoute><MaestroLayout><MaestroDashboard /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/agents" element={<ProtectedRoute><MaestroLayout><MaestroAgents /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/agents/:id" element={<ProtectedRoute><MaestroLayout><AgentDetails /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/workflows" element={<ProtectedRoute><MaestroLayout><MaestroWorkflows /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/observability" element={<ProtectedRoute><MaestroLayout><MaestroObservability /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/governance" element={<ProtectedRoute requiredRole="admin"><MaestroLayout><MaestroGovernance /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/maestro/hitl" element={<ProtectedRoute><MaestroLayout><HITLDashboard /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/integrations" element={<ProtectedRoute requiredRole="developer"><MaestroLayout><MaestroIntegrations /></MaestroLayout></ProtectedRoute>} />
                   <Route path="/maestro/settings" element={<ProtectedRoute><MaestroLayout><MaestroSettings /></MaestroLayout></ProtectedRoute>} />
+                  
+                  {/* System Routes */}
+                  <Route path="/profile" element={<ProtectedRoute><MaestroLayout><Profile /></MaestroLayout></ProtectedRoute>} />
+                  <Route path="/teams" element={<ProtectedRoute requiredRole="admin"><MaestroLayout><Teams /></MaestroLayout></ProtectedRoute>} />
                   
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />

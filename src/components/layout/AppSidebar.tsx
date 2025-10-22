@@ -12,6 +12,7 @@ import {
   Users,
   Brain,
   GitBranch,
+  AlertCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const mainItems = [
   { title: 'Workflows', url: '/workflows', icon: GitBranch },
   { title: 'Tools & Connectors', url: '/tools', icon: Wrench },
   { title: 'Approvals', url: '/approvals', icon: UserCheck },
+  { title: 'HITL Dashboard', url: '/hitl', icon: AlertCircle },
   { title: 'Evaluations', url: '/evaluations', icon: BarChart },
   { title: 'Analytics', url: '/analytics', icon: BarChart },
   { title: 'Policies & Governance', url: '/policies', icon: Shield },

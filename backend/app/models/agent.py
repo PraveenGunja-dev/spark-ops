@@ -63,6 +63,15 @@ class Agent(Base, TimestampMixin):
     enable_tools = Column(Boolean, default=True, nullable=False)
     enable_code_interpreter = Column(Boolean, default=False, nullable=False)
     
+    # APA (Agentic Process Automation) features
+    reasoning_model = Column(String(100), nullable=True)  # Override model for reasoning
+    enable_reasoning = Column(Boolean, default=True, nullable=False, server_default="true")
+    enable_collaboration = Column(Boolean, default=False, nullable=False, server_default="false")
+    enable_learning = Column(Boolean, default=True, nullable=False, server_default="true")
+    personality_traits = Column(JSONB, nullable=True)  # Agent personality
+    safety_guardrails = Column(JSONB, nullable=True)  # Safety rules
+    max_iterations = Column(Integer, default=10, nullable=False, server_default="10")
+    
     # Version control
     version = Column(String(20), default="1.0.0", nullable=False)
     

@@ -8,6 +8,7 @@ sqlalchemy==2.0.25
 alembic==1.13.1
 psycopg2-binary==2.9.9
 asyncpg==0.29.0
+pgvector==0.2.4
 
 # Redis and Task Queue
 redis==5.0.1
@@ -52,6 +53,18 @@ pre-commit==3.6.0
 
 # LangWatch SDK (placeholder - install when available)
 # langwatch==0.1.0
+
+# APA - LLM and Agent Framework
+langchain==0.1.0
+langchain-openai==0.0.2
+langchain-anthropic==0.1.1
+openai==1.10.0
+anthropic==0.18.0
+tiktoken==0.5.2
+
+# APA - Vector Database
+chromadb==0.4.22
+pinecone-client==3.0.3
 
 # OpenTelemetry
 opentelemetry-api==1.22.0

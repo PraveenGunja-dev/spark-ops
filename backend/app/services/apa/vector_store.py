@@ -1,9 +1,9 @@
 """
-Vector Store - Semantic memory storage using ChromaDB/Pinecone
+Vector Store - Semantic memory storage using ChromaDB/Pinecone/pgvector
 """
 import os
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 
 # ChromaDB imports
 try:
@@ -27,10 +27,23 @@ try:
 except ImportError:
     OPENAI_AVAILABLE = False
 
+# SQLAlchemy for pgvector
+try:
+    from sqlalchemy import text
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.future import select
+    PGVECTOR_AVAILABLE = True
+except ImportError:
+    PGVECTOR_AVAILABLE = False
+
+# Import models
+from app.models.agent_reasoning import AgentMemory
+from app.models.collaboration import MultiAgentCollaboration
+
 
 class VectorStore:
     """
-    Vector Store for semantic memory using ChromaDB (dev) or Pinecone (prod)
+    Vector Store for semantic memory using ChromaDB (dev), Pinecone (prod), or pgvector (direct DB)
     
     Responsibilities:
     - Store and retrieve embeddings
@@ -42,9 +55,11 @@ class VectorStore:
         self,
         store_type: str = "chromadb",
         collection_name: str = "agent_memory",
+        db_session: Optional[AsyncSession] = None,
     ):
         self.store_type = store_type
         self.collection_name = collection_name
+        self.db_session = db_session
         
         # Initialize embedding client
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -55,6 +70,10 @@ class VectorStore:
             self._init_chromadb()
         elif store_type == "pinecone" and PINECONE_AVAILABLE:
             self._init_pinecone()
+        elif store_type == "pgvector" and PGVECTOR_AVAILABLE and db_session:
+            # No initialization needed for pgvector, just use the db_session
+            self.client = None
+            self.collection = None
         else:
             self.client = None
             self.collection = None
@@ -128,6 +147,10 @@ class VectorStore:
             metadata: Additional metadata
             embedding: Pre-computed embedding (optional)
         """
+        if self.store_type == "pgvector" and self.db_session:
+            await self._store_memory_pgvector(memory_id, content, metadata, embedding)
+            return
+            
         if not self.collection:
             print("Vector store not initialized")
             return
@@ -151,6 +174,51 @@ class VectorStore:
                 vectors=[(memory_id, embedding, metadata or {})]
             )
     
+    async def _store_memory_pgvector(
+        self,
+        memory_id: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        embedding: Optional[List[float]] = None,
+    ) -> None:
+        """Store memory directly in PostgreSQL using pgvector"""
+        if not self.db_session:
+            return
+            
+        # Generate embedding if not provided
+        if embedding is None:
+            embedding = await self.generate_embedding(content)
+            
+        # Check if memory exists
+        stmt = select(AgentMemory).where(AgentMemory.id == uuid.UUID(memory_id))
+        result = await self.db_session.execute(stmt)
+        memory = result.scalars().first()
+        
+        if memory:
+            # Update existing memory
+            memory.content = content
+            memory.embedding = embedding
+            memory.metadata_ = metadata or {}
+        else:
+            # Create new memory (assuming agent_id is in metadata)
+            agent_id = metadata.get("agent_id") if metadata else None
+            memory_type = metadata.get("memory_type", "semantic") if metadata else "semantic"
+            
+            if not agent_id:
+                raise ValueError("agent_id must be provided in metadata")
+                
+            memory = AgentMemory(
+                id=uuid.UUID(memory_id),
+                agent_id=uuid.UUID(agent_id),
+                memory_type=memory_type,
+                content=content,
+                embedding=embedding,
+                metadata_=metadata or {},
+            )
+            self.db_session.add(memory)
+            
+        await self.db_session.commit()
+    
     async def search_similar(
         self,
         query: str,
@@ -168,6 +236,9 @@ class VectorStore:
         Returns:
             List of similar memories with scores
         """
+        if self.store_type == "pgvector" and self.db_session:
+            return await self._search_similar_pgvector(query, limit, filter_metadata)
+            
         if not self.collection:
             print("Vector store not initialized")
             return []
@@ -219,6 +290,60 @@ class VectorStore:
         
         return []
     
+    async def _search_similar_pgvector(
+        self,
+        query: str,
+        limit: int = 5,
+        filter_metadata: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Search for similar memories using pgvector"""
+        if not self.db_session:
+            return []
+            
+        # Generate query embedding
+        query_embedding = await self.generate_embedding(query)
+        
+        # Build the query
+        # Note: Using raw SQL for vector similarity search
+        sql = """
+        SELECT id, content, metadata_, 1 - (embedding <=> :embedding) as similarity
+        FROM agent_memory
+        """
+        
+        # Add filters if provided
+        params = {"embedding": query_embedding}
+        if filter_metadata:
+            conditions = []
+            for key, value in filter_metadata.items():
+                param_name = f"filter_{key}"
+                conditions.append(f"metadata_->>''{key}'' = :{param_name}")
+                params[param_name] = value
+            
+            sql += " WHERE " + " AND ".join(conditions)
+        
+        # Add order by and limit
+        sql += """
+        ORDER BY embedding <=> :embedding
+        LIMIT :limit
+        """
+        params["limit"] = limit
+        
+        # Execute query
+        result = await self.db_session.execute(text(sql), params)
+        rows = result.fetchall()
+        
+        # Format results
+        memories = []
+        for row in rows:
+            memories.append({
+                "id": str(row.id),
+                "content": row.content,
+                "metadata": row.metadata_,
+                "score": float(row.similarity),
+            })
+            
+        return memories
+    
     async def delete_memory(self, memory_id: str) -> None:
         """
         Delete a memory from the vector store
@@ -226,6 +351,16 @@ class VectorStore:
         Args:
             memory_id: Memory ID to delete
         """
+        if self.store_type == "pgvector" and self.db_session:
+            stmt = select(AgentMemory).where(AgentMemory.id == uuid.UUID(memory_id))
+            result = await self.db_session.execute(stmt)
+            memory = result.scalars().first()
+            
+            if memory:
+                await self.db_session.delete(memory)
+                await self.db_session.commit()
+            return
+            
         if not self.collection:
             return
         
@@ -236,6 +371,17 @@ class VectorStore:
     
     async def get_collection_stats(self) -> Dict[str, Any]:
         """Get statistics about the collection"""
+        if self.store_type == "pgvector" and self.db_session:
+            # Count memories in database
+            result = await self.db_session.execute(text("SELECT COUNT(*) FROM agent_memory"))
+            count = result.scalar() or 0
+            
+            return {
+                "count": count,
+                "store_type": "pgvector",
+                "collection_name": "agent_memory",
+            }
+            
         if not self.collection:
             return {"count": 0, "status": "not_initialized"}
         

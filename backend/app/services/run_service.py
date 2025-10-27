@@ -1,7 +1,7 @@
 """
 Run Service Layer - Workflow execution management
 """
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime, timezone
 from sqlalchemy import select, func
@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.workflow_execution import WorkflowExecution, WorkflowStep, ExecutionStatus
 from app.schemas.run import RunCreate, RunUpdate, RunStepCreate, RunStepUpdate
+from app.services.websocket_service import WebSocketService
 
 
 class RunService:
@@ -78,11 +79,34 @@ class RunService:
         if not run:
             return None
         
+        # Store previous status for comparison
+        previous_status = run.status
+        
         for field, value in run_data.model_dump(exclude_unset=True).items():
             setattr(run, field, value)
         
         await db.commit()
         await db.refresh(run)
+        
+        # Emit WebSocket event for run update
+        project_id = str(run.metadata_.get("project_id", ""))
+        run_data_dict = {
+            "id": str(run.id),
+            "status": run.status.value,
+            "previous_status": previous_status.value if previous_status else None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_run_update(str(run.id), project_id, run_data_dict)
+        
+        # Emit activity feed update
+        activity_data = {
+            "id": str(run.id),
+            "workflow_id": str(run.workflow_id),
+            "status": run.status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_activity(project_id, "run_updated", activity_data)
+        
         return run
     
     @staticmethod
@@ -92,10 +116,32 @@ class RunService:
         if not run or run.status != ExecutionStatus.RUNNING:
             return None
         
+        # Store previous status
+        previous_status = run.status
+        
         run.status = ExecutionStatus.CANCELLED
         run.completed_at = datetime.now(timezone.utc)
         if run.started_at:
             run.duration_seconds = int((run.completed_at - run.started_at).total_seconds())
+            
+        # Emit WebSocket event for run cancellation
+        project_id = str(run.metadata_.get("project_id", ""))
+        run_data_dict = {
+            "id": str(run.id),
+            "status": run.status.value,
+            "previous_status": previous_status.value,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_run_update(str(run.id), project_id, run_data_dict)
+        
+        # Emit activity feed update
+        activity_data = {
+            "id": str(run.id),
+            "workflow_id": str(run.workflow_id),
+            "status": run.status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_activity(project_id, "run_cancelled", activity_data)
         
         await db.commit()
         await db.refresh(run)

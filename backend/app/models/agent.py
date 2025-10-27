@@ -3,7 +3,8 @@ Agent Model - AI agents with capabilities and configurations
 """
 import uuid
 import enum
-from sqlalchemy import Column, String, Text, Boolean, Integer, ForeignKey, Enum as SQLEnum
+from datetime import datetime
+from sqlalchemy import Column, String, Text, Boolean, Integer, ForeignKey, Enum as SQLEnum, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 
@@ -71,6 +72,14 @@ class Agent(Base, TimestampMixin):
     personality_traits = Column(JSONB, nullable=True)  # Agent personality
     safety_guardrails = Column(JSONB, nullable=True)  # Safety rules
     max_iterations = Column(Integer, default=10, nullable=False, server_default="10")
+    
+    # Health and monitoring
+    health = Column(String(20), default="unknown", nullable=False, server_default="unknown")  # healthy, degraded, unhealthy, unknown
+    last_heartbeat = Column(DateTime(timezone=True), nullable=True)  # Last heartbeat timestamp
+    concurrency = Column(Integer, default=1, nullable=False, server_default="1")  # Number of concurrent executions
+    autoscale_min = Column(Integer, default=1, nullable=False, server_default="1")  # Minimum instances
+    autoscale_max = Column(Integer, default=10, nullable=False, server_default="10")  # Maximum instances
+    autoscale_target_cpu = Column(Integer, default=70, nullable=False, server_default="70")  # Target CPU percentage
     
     # Version control
     version = Column(String(20), default="1.0.0", nullable=False)

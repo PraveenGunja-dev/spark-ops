@@ -14,11 +14,15 @@ import structlog
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.api.websocket import sio_app
 try:
     from app.middleware.rate_limit import RateLimitMiddleware
     RATE_LIMIT_AVAILABLE = True
 except ImportError:
     RATE_LIMIT_AVAILABLE = False
+
+# Global scheduler instance
+scheduler_service = None
 
 # Setup structured logging
 setup_logging()
@@ -50,6 +54,9 @@ if settings.ENABLE_RATE_LIMITING and RATE_LIMIT_AVAILABLE:
 # Include API router
 app.include_router(api_router, prefix=f"/api/{settings.API_VERSION}")
 
+# Mount Socket.IO app
+app.mount("/ws", sio_app)
+
 # Prometheus metrics endpoint
 if settings.ENABLE_METRICS and PROMETHEUS_AVAILABLE:
     metrics_app = make_asgi_app()
@@ -59,17 +66,40 @@ if settings.ENABLE_METRICS and PROMETHEUS_AVAILABLE:
 @app.on_event("startup")
 async def startup_event() -> None:
     """Run on application startup"""
+    global scheduler_service
+    
     logger.info(
         "startup",
         app_name=settings.APP_NAME,
         environment=settings.ENVIRONMENT,
         version=settings.API_VERSION,
     )
+    
+    # Initialize scheduler service
+    try:
+        from app.db.session import get_db
+        from app.services.scheduler_service import SchedulerService
+        
+        # Get database session
+        async for db in get_db():
+            scheduler_service = SchedulerService(db)
+            await scheduler_service.start()
+            break
+            
+        logger.info("Scheduler service initialized")
+    except Exception as e:
+        logger.error(f"Error initializing scheduler service: {e}")
 
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     """Run on application shutdown"""
+    global scheduler_service
+    
+    # Stop scheduler service
+    if scheduler_service:
+        await scheduler_service.stop()
+        
     logger.info("shutdown", app_name=settings.APP_NAME)
 
 

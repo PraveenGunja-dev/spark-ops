@@ -25,6 +25,15 @@ class MultiAgentCollaboration(Base):
     shared_context = Column(JSONB, default=dict, nullable=False)
     communication_log = Column(JSONB, default=list, nullable=False)  # Array of messages
     
+    # Vector embedding for shared context using pgvector
+    try:
+        from sqlalchemy.dialects.postgresql import VECTOR
+        context_embedding = Column(VECTOR(1536), nullable=True)
+    except ImportError:
+        # Fallback to array if pgvector is not available
+        from sqlalchemy import ARRAY, Float
+        context_embedding = Column(ARRAY(Float), nullable=True)
+    
     status = Column(String(50), nullable=False)  # "active", "completed", "failed"
     started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)

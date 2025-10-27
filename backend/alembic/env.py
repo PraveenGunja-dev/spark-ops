@@ -16,6 +16,7 @@ if sys.platform == 'win32':
 # Import your models here
 from app.db.base import Base
 from app.models import User  # Import all models
+from app.models.template import Template
 from app.core.config import settings
 
 # this is the Alembic Config object

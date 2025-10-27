@@ -1,350 +1,330 @@
-# 🏗️ Spark-Ops System Architecture
+# 🏗️ Multi-Framework Execution Plane - Architecture Diagram
 
-## Complete System Diagram
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           FRONTEND (React + TypeScript)                      │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  UI Layer                                                             │  │
-│  │  • Dashboard          • Run Timeline      • Agent Graph               │  │
-│  │  • Workflow Editor    • Policy Management • Telemetry Dashboard       │  │
-│  │  • React Query        • Error Boundaries  • Loading States           │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓ HTTP/WebSocket
+│                           USER INTERFACE LAYER                               │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                    React Flow Workflow Builder                         │ │
+│  │  • Drag & drop nodes (Agent, Decision, Tool, Human, etc.)            │ │
+│  │  • Connect nodes to define workflow logic                             │ │
+│  │  • Visual editing and configuration                                   │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │              EnhancedWorkflowBuilder Component                         │ │
+│  │  • Real-time workflow analysis                                        │ │
+│  │  • Framework recommendation engine                                    │ │
+│  │  • Statistics display (nodes, agents, conditions, parallel paths)    │ │
+│  │  • Execution controls                                                 │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                  FrameworkSelector Component                           │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │ │
+│  │  │LangChain │  │ CrewAI   │  │LangGraph │  │ Custom   │             │ │
+│  │  │🔗 ReAct  │  │👥 Multi  │  │📊 State  │  │⚙️ Control│             │ │
+│  │  │          │  │  Agent   │  │ Machine  │  │          │             │ │
+│  │  │ • Pros   │  │ • Pros   │  │ • Pros   │  │ • Pros   │             │ │
+│  │  │ • Cons   │  │ • Cons   │  │ • Cons   │  │ • Cons   │             │ │
+│  │  │[Select]  │  │[Select]  │  │[Select]  │  │[Select]  │             │ │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                                   │ REST API (JSON)
+                                   ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         CONTROL PLANE (FastAPI)                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  API Gateway (Port 8000)                                            │   │
-│  │  • CORS Middleware    • Rate Limiting    • Authentication           │   │
-│  │  • Request Validation • Error Handling   • Logging                  │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                      ↓                                       │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │   Projects   │    Agents    │  Workflows   │   Runs & Tools       │     │
-│  │   Service    │   Service    │   Service    │   Service            │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
-│                                      ↓                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Orchestration Engine                                               │   │
-│  │  • Workflow DAG Parser  • State Machine   • Event Bus              │   │
-│  │  • Task Scheduler       • Retry Logic     • Error Handling         │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                      ↓                                       │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │  Scheduler   │    Policy    │   Budget     │   Webhook            │     │
-│  │  Service     │   Engine     │   Manager    │   Handler            │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓
+│                         API GATEWAY LAYER (FastAPI)                          │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                    Workflow Execution Router                           │ │
+│  │                                                                        │ │
+│  │  POST /workflows/execute    ← Execute workflow with selected framework│ │
+│  │  POST /workflows/analyze    ← Analyze & recommend framework          │ │
+│  │  GET  /workflows/frameworks ← List all available frameworks          │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                    │                                         │
+│                    ┌───────────────┼───────────────┐                        │
+│                    ▼               ▼               ▼                        │
+│         ┌────────────────┐  ┌────────────┐  ┌────────────┐                │
+│         │  Framework     │  │ Framework  │  │ Framework  │                │
+│         │   Routing      │  │ Validation │  │ Analytics  │                │
+│         │   Logic        │  │ & Safety   │  │ Engine     │                │
+│         └────────────────┘  └────────────┘  └────────────┘                │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                    ┌──────────────┼──────────────┐
+                    ▼              ▼              ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         MESSAGE QUEUE (Redis/Celery)                         │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │  Run Queue   │  Policy      │  Schedule    │   Webhook            │     │
-│  │              │  Queue       │  Queue       │   Queue              │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓
+│                      FRAMEWORK EXECUTION LAYER                               │
+│                                                                              │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐ │
+│  │  LangChainExecutor  │  │  CrewOrchestrator   │  │  WorkflowEngine     │ │
+│  │  ┌───────────────┐  │  │  ┌───────────────┐  │  │  ┌───────────────┐  │ │
+│  │  │ ReAct Pattern │  │  │  │  Multi-Agent  │  │  │  │ State Machine │  │ │
+│  │  │               │  │  │  │  Coordination │  │  │  │               │  │ │
+│  │  │ 1. Thought    │  │  │  │               │  │  │  │ Graph Builder │  │ │
+│  │  │ 2. Action     │  │  │  │ Sequential/   │  │  │  │               │  │ │
+│  │  │ 3. Observation│  │  │  │ Hierarchical  │  │  │  │ Conditional   │  │ │
+│  │  │ 4. Repeat     │  │  │  │ Processes     │  │  │  │ Routing       │  │ │
+│  │  │               │  │  │  │               │  │  │  │               │  │ │
+│  │  │ • OpenAI      │  │  │  │ • Shared Mem  │  │  │  │ • Checkpoints │  │ │
+│  │  │ • Anthropic   │  │  │  │ • Role-based  │  │  │  │ • Cycles OK   │  │ │
+│  │  │ • Tools       │  │  │  │ • Delegation  │  │  │  │ • Persistence │  │ │
+│  │  └───────────────┘  │  │  └───────────────┘  │  │  └───────────────┘  │ │
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘ │
+│              │                       │                       │               │
+│              └───────────────────────┼───────────────────────┘               │
+│                                      ▼                                       │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                        SHARED SERVICES                                 │ │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                │ │
+│  │  │SafetyEngine  │  │ContextManager│  │ToolRegistry  │                │ │
+│  │  │              │  │              │  │              │                │ │
+│  │  │• Risk Check  │  │• Memory Store│  │• Tool Lookup │                │ │
+│  │  │• HITL Queue  │  │• Context Load│  │• Tool Execute│                │ │
+│  │  │• Validation  │  │• Learning    │  │• Tool Adapt  │                │ │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘                │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                                   ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         WORKER LAYER (Celery Workers)                        │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │ Orchestrator │   Scheduler  │    Policy    │   Metrics            │     │
-│  │ Workers (5)  │   Worker (1) │   Workers(3) │   Collector          │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DATA PLANE (Agent Runtime)                         │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Agent Runtime Environment                                          │   │
-│  │  • Python Executor    • Node.js Executor   • LLM Interface         │   │
-│  │  • Tool Manager       • Context Manager    • Memory Store          │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                      ↓                                       │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │   HTTP       │   Database   │   Browser    │   Search             │     │
-│  │   Tools      │   Tools      │   Tools      │   Tools              │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           STORAGE & PERSISTENCE                              │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  PostgreSQL Database                                                 │  │
-│  │  • Projects   • Agents      • Workflows    • Runs                   │  │
-│  │  • Tools      • Schedules   • Policies     • Budgets                │  │
-│  │  • Users      • Run Steps   • Violations   • Metrics                │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  Redis Cache & Queue                                                 │  │
-│  │  • Session Store   • Rate Limiting   • Task Queue   • Pub/Sub       │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  Object Storage (S3/GCS)                                            │  │
-│  │  • Run Artifacts   • Logs   • Datasets   • Models                   │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      OBSERVABILITY & MONITORING                              │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────────┐     │
-│  │  LangWatch   │  Prometheus  │   Grafana    │   OpenTelemetry      │     │
-│  │  (LLM Trace) │  (Metrics)   │  (Dashboard) │   (Tracing)          │     │
-│  └──────────────┴──────────────┴──────────────┴──────────────────────┘     │
+│                           DATA PERSISTENCE LAYER                             │
+│                                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │  PostgreSQL  │  │   ChromaDB   │  │    Redis     │  │  File Store  │   │
+│  │              │  │              │  │              │  │              │   │
+│  │ • Workflows  │  │ • Vectors    │  │ • Cache      │  │ • Artifacts  │   │
+│  │ • Agents     │  │ • Embeddings │  │ • Sessions   │  │ • Logs       │   │
+│  │ • Executions │  │ • Memory     │  │ • Queue      │  │ • Traces     │   │
+│  │ • Traces     │  │ • RAG Index  │  │ • Locks      │  │ • Exports    │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
----
+## Data Flow
 
-## Data Flow Diagram
-
-### 1. User Creates a Run
-
+### 1. Workflow Analysis Flow
 ```
-User (Frontend)
-    ↓ POST /api/v1/runs
-API Gateway
-    ↓ Authentication & Validation
-Run Service
-    ↓ Create Run Record
-PostgreSQL
-    ↓ Publish Task
-Redis Queue
-    ↓ Pick up task
-Orchestrator Worker
-    ↓ Execute Workflow
-Agent Runtime
-    ↓ Execute Tools
-External APIs/Services
-    ↓ Store Results
-PostgreSQL + LangWatch
-    ↓ Send Updates
-WebSocket → Frontend
+User builds workflow in UI
+    │
+    ▼
+EnhancedWorkflowBuilder captures nodes/edges
+    │
+    ▼
+Auto-analysis triggered:
+  • Count nodes and agents
+  • Detect conditions
+  • Detect parallel paths
+    │
+    ▼
+Recommendation engine:
+  IF single agent → LangChain
+  IF multi-agent → CrewAI
+  IF complex logic → LangGraph
+  ELSE → Custom
+    │
+    ▼
+Display recommendation to user
 ```
 
-### 2. Policy Enforcement Flow
-
+### 2. Workflow Execution Flow
 ```
-Run Creation Request
-    ↓
-Policy Service
-    ↓ Check Budget
-Budget Manager
-    ↓ Check Constraints
-Policy Engine
-    ↓ Evaluate Rules
-Decision: ALLOW | DENY | REQUIRE_APPROVAL
-    ↓ if ALLOW
-Continue Execution
-    ↓ if REQUIRE_APPROVAL
-Queue for Human Review
-    ↓ if DENY
-Return Error to User
-```
-
-### 3. Scheduled Run Execution
-
-```
-Scheduler Worker (Celery Beat)
-    ↓ Check Cron Schedules
-Schedule Service
-    ↓ Find Due Schedules
-PostgreSQL
-    ↓ Create Runs
-Run Service
-    ↓ Queue for Execution
-Redis Queue
-    ↓
-[Same as Run Creation Flow]
-```
-
----
-
-## Component Interaction Map
-
-```
-┌─────────────────┐
-│   Frontend      │
-└────────┬────────┘
-         │ HTTP/WS
-         ↓
-┌─────────────────┐     ┌──────────────┐
-│  API Gateway    │────→│  Auth        │
-└────────┬────────┘     └──────────────┘
-         │
-    ┌────┴─────┬─────────┬──────────┬───────────┐
-    ↓          ↓         ↓          ↓           ↓
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│Project │ │ Agent  │ │Workflow│ │  Run   │ │ Tool   │
-│Service │ │Service │ │Service │ │Service │ │Service │
-└───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘
-    │          │           │           │          │
-    └──────────┴───────────┴───────────┴──────────┘
-                          ↓
-                   ┌──────────────┐
-                   │  PostgreSQL  │
-                   └──────────────┘
+User clicks "Execute Workflow"
+    │
+    ▼
+Frontend sends to POST /workflows/execute
+    │
+    ▼
+API Router receives request
+    │
+    ├─ Extract framework parameter
+    ├─ Validate nodes/edges
+    └─ Initialize services (SafetyEngine, ContextManager)
+    │
+    ▼
+Route to appropriate executor:
+    │
+    ├─ framework == "langchain" → LangChainExecutor
+    ├─ framework == "crewai" → CrewOrchestrator
+    ├─ framework == "langgraph" → WorkflowEngine
+    └─ framework == "custom" → AgentExecutor
+    │
+    ▼
+Executor processes workflow:
+    │
+    ├─ Transform nodes to framework format
+    ├─ Build execution graph/crew/agent
+    ├─ Safety check (HITL if needed)
+    ├─ Execute with LLM
+    └─ Collect metrics (tokens, cost, time)
+    │
+    ▼
+Store execution context for learning
+    │
+    ▼
+Return results to frontend
+    │
+    ▼
+Display output, metrics, and trace
 ```
 
----
+## Component Interactions
 
-## Database Schema Relationships
+### Frontend ↔ Backend
+```typescript
+// Frontend sends
+{
+  framework: "langchain",
+  nodes: [{id: "1", type: "agent", data: {...}}],
+  edges: [{source: "1", target: "2"}],
+  input: {input: "user query"}
+}
 
-```
-┌──────────┐        ┌──────────┐        ┌──────────┐
-│  Users   │───────→│ Projects │←───────│  Agents  │
-└──────────┘  1:N   └────┬─────┘   N:1  └────┬─────┘
-                         │                     │
-                         │ 1:N             1:N │
-                         ↓                     ↓
-                    ┌────────────┐      ┌──────────┐
-                    │ Workflows  │      │  Tools   │
-                    └─────┬──────┘      └──────────┘
-                          │ 1:N
-                          ↓
-                    ┌──────────┐
-                    │   Runs   │
-                    └─────┬────┘
-                          │ 1:N
-                          ↓
-                    ┌──────────┐
-                    │RunSteps  │
-                    └──────────┘
-
-┌──────────┐        ┌──────────┐
-│ Policies │───────→│Violations│
-└──────────┘  1:N   └──────────┘
-
-┌──────────┐        ┌──────────┐
-│ Budgets  │───────→│ Projects │
-└──────────┘  N:1   └──────────┘
-
-┌──────────┐        ┌──────────┐
-│Schedules │───────→│Workflows │
-└──────────┘  N:1   └──────────┘
+// Backend responds
+{
+  status: "success",
+  output: "Agent's response",
+  metrics: {
+    execution_time: 2.5,
+    total_tokens: 850,
+    total_cost: 0.034
+  },
+  trace: {...}
+}
 ```
 
----
-
-## Security Architecture
-
-```
-┌─────────────────────────────────────────────────┐
-│              Security Layers                     │
-└─────────────────────────────────────────────────┘
-
-Layer 1: Network Security
-    • CORS Policy
-    • Rate Limiting
-    • DDoS Protection
-
-Layer 2: Authentication
-    • JWT Tokens (15min expiry)
-    • Refresh Tokens (7 day expiry)
-    • API Keys for programmatic access
-
-Layer 3: Authorization
-    • Role-Based Access Control (RBAC)
-    • Project-level permissions
-    • Resource ownership validation
-
-Layer 4: Data Security
-    • Password hashing (bcrypt)
-    • Encrypted sensitive data
-    • Secure secret management
-
-Layer 5: Audit & Monitoring
-    • Request logging
-    • Audit trails
-    • Security events tracking
+### Framework Selection Logic
+```python
+def suggest_framework(nodes, edges):
+    agent_count = count_agents(nodes)
+    has_conditions = detect_conditions(nodes, edges)
+    has_parallel = detect_parallel_paths(nodes, edges)
+    
+    if len(nodes) == 1 or agent_count == 1:
+        return "langchain"
+    
+    if has_conditions and has_parallel:
+        return "langgraph"
+    
+    if agent_count > 1:
+        return "crewai"
+    
+    if has_conditions:
+        return "langgraph"
+    
+    return "custom"
 ```
 
----
+## Framework Comparison
 
-## Deployment Architecture
+| Feature | LangChain | CrewAI | LangGraph | Custom |
+|---------|-----------|---------|-----------|--------|
+| **Pattern** | ReAct | Multi-Agent | State Machine | Custom |
+| **Best For** | Single agent | Collaboration | Complex logic | Full control |
+| **Complexity** | Low | Medium | High | Low |
+| **Setup Time** | Fast | Medium | Slow | Fast |
+| **Flexibility** | Medium | Low | High | Highest |
+| **Community** | Largest | Growing | Growing | N/A |
+| **Memory** | Built-in | Shared | Persistent | Custom |
+| **Tools** | 100+ | Limited | Limited | Custom |
+| **Learning Curve** | Easy | Medium | Steep | Depends |
 
-```
-┌──────────────────────────────────────────────────┐
-│           Production Deployment                   │
-└──────────────────────────────────────────────────┘
-
-┌─────────────┐
-│Load Balancer│
-└──────┬──────┘
-       │
-   ┌───┴────┬────────┬────────┐
-   │        │        │        │
-   ↓        ↓        ↓        ↓
-┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐
-│ API  │ │ API  │ │ API  │ │ API  │
-│ Pod1 │ │ Pod2 │ │ Pod3 │ │ Pod4 │
-└──────┘ └──────┘ └──────┘ └──────┘
-   │        │        │        │
-   └────────┴────────┴────────┘
-            │
-    ┌───────┴────────┐
-    │                │
-    ↓                ↓
-┌─────────┐   ┌──────────┐
-│PostgreSQL│   │  Redis   │
-│ (RDS)    │   │(ElastiCache)
-└─────────┘   └──────────┘
-
-┌────────────────────────────────┐
-│   Worker Nodes (Auto-scaling)  │
-│  • Orchestrator Workers (5)    │
-│  • Scheduler Worker (1)        │
-│  • Policy Workers (3)          │
-└────────────────────────────────┘
-
-┌────────────────────────────────┐
-│     Monitoring Stack           │
-│  • Prometheus                  │
-│  • Grafana                     │
-│  • LangWatch                   │
-└────────────────────────────────┘
-```
-
----
-
-## Technology Stack Summary
+## Technology Stack
 
 ### Frontend
-- **Framework:** React 18.3 + TypeScript 5.6
-- **Build:** Vite 5.4 with SWC
-- **UI:** shadcn/ui + Tailwind CSS
-- **State:** TanStack React Query v5
-- **Routing:** React Router DOM 6.30
+- **React** - UI framework
+- **TypeScript** - Type safety
+- **React Flow** - Visual workflow builder
+- **TailwindCSS** - Styling
 
 ### Backend
-- **Framework:** FastAPI 0.109
-- **Server:** Uvicorn (ASGI)
-- **Language:** Python 3.11+
-- **Validation:** Pydantic 2.5
+- **FastAPI** - Web framework
+- **Python 3.13** - Runtime
+- **SQLAlchemy** - ORM
+- **Pydantic** - Validation
 
-### Database
-- **Primary:** PostgreSQL 15+
-- **ORM:** SQLAlchemy 2.0 (async)
-- **Migrations:** Alembic 1.13
+### AI Frameworks
+- **LangChain** - ReAct agents
+- **CrewAI** - Multi-agent
+- **LangGraph** - State machines
+- **OpenAI/Anthropic** - LLM providers
 
-### Cache & Queue
-- **Cache:** Redis 7+
-- **Queue:** Celery 5.3
+### Storage
+- **PostgreSQL** - Primary database
+- **ChromaDB** - Vector database
+- **Redis** - Caching/queues
 
-### Observability
-- **Tracing:** LangWatch + OpenTelemetry
-- **Metrics:** Prometheus
-- **Logging:** Structlog
-- **Visualization:** Grafana
+## Security & Safety
+
+```
+Every execution goes through:
+    │
+    ▼
+┌────────────────────┐
+│   SafetyEngine     │
+│                    │
+│ 1. Risk Assessment │
+│ 2. Policy Check    │
+│ 3. HITL if needed  │
+└────────────────────┘
+    │
+    ▼
+┌────────────────────┐
+│   Execute if OK    │
+└────────────────────┘
+```
+
+## Metrics & Observability
+
+```
+Every execution tracks:
+    │
+    ├─ Execution time
+    ├─ Token usage
+    ├─ Cost calculation
+    ├─ Step-by-step trace
+    ├─ Intermediate results
+    └─ Error details (if any)
+    │
+    ▼
+Stored in database for:
+    │
+    ├─ Analysis
+    ├─ Optimization
+    ├─ Learning
+    └─ Debugging
+```
+
+## Extensibility
+
+### Adding a New Framework
+
+```
+1. Create executor service
+   └─ backend/app/services/apa/new_executor.py
+   
+2. Add to API router
+   └─ backend/app/api/v1/endpoints/workflow_execution.py
+   
+3. Add frontend config
+   └─ src/lib/workflow-frameworks.ts
+   
+4. Done! Framework is now available
+```
 
 ---
 
-**This architecture supports:**
-- ✅ High scalability (horizontal scaling)
-- ✅ High availability (multi-instance deployment)
-- ✅ Real-time updates (WebSocket support)
-- ✅ Async processing (Celery workers)
-- ✅ Policy enforcement (built-in governance)
-- ✅ Cost tracking (budget management)
-- ✅ Comprehensive monitoring (full observability)
+**Architecture designed for:**
+- ✅ Flexibility (4 frameworks supported)
+- ✅ Safety (integrated SafetyEngine)
+- ✅ Scalability (async execution)
+- ✅ Observability (metrics & traces)
+- ✅ Extensibility (easy to add frameworks)
+- ✅ Developer Experience (visual builder + auto-recommendations)

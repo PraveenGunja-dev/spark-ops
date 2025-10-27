@@ -1,61 +1,45 @@
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-const mockTemplates = [
-  {
-    id: 1,
-    name: 'Invoice Processing',
-    description: 'Extract data from invoices and update accounting system',
-    category: 'Finance',
-    downloads: 1234,
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    name: 'Email Classifier',
-    description: 'Automatically categorize and route incoming emails',
-    category: 'Communication',
-    downloads: 892,
-    rating: 4.6,
-  },
-  {
-    id: 3,
-    name: 'Lead Generation',
-    description: 'Scrape and qualify leads from multiple sources',
-    category: 'Sales',
-    downloads: 2145,
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    name: 'Report Generator',
-    description: 'Generate weekly reports from multiple data sources',
-    category: 'Analytics',
-    downloads: 567,
-    rating: 4.5,
-  },
-  {
-    id: 5,
-    name: 'Customer Onboarding',
-    description: 'Automate customer onboarding workflow and notifications',
-    category: 'HR',
-    downloads: 778,
-    rating: 4.7,
-  },
-  {
-    id: 6,
-    name: 'Data Backup',
-    description: 'Schedule and verify automated data backups',
-    category: 'IT',
-    downloads: 445,
-    rating: 4.4,
-  },
-];
+import { useState } from 'react';
+import { useTemplates, useIncrementDownloads } from '@/hooks/useTemplates';
+import { useToast } from '@/hooks/use-toast';
 
 export default function StudioTemplates() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>();
+  const { toast } = useToast();
+  
+  // Fetch templates with search and category filter
+  const { data, isLoading, error } = useTemplates(1, 100, selectedCategory, searchQuery);
+  const templates = data?.items || [];
+  
+  const { mutate: incrementDownloads } = useIncrementDownloads();
+  
+  const handleUseTemplate = (templateId: string, templateName: string) => {
+    // Increment download count
+    incrementDownloads(templateId, {
+      onSuccess: () => {
+        toast({
+          title: 'Template Selected',
+          description: `"${templateName}" is ready to use!`,
+        });
+      },
+    });
+  };
+  
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="text-center text-destructive">
+          <p>Failed to load templates</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -70,7 +54,12 @@ export default function StudioTemplates() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search templates..." className="pl-10" />
+          <Input 
+            placeholder="Search templates..." 
+            className="pl-10" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
         <Button variant="outline">
           <Filter className="h-4 w-4 mr-2" />
@@ -78,9 +67,22 @@ export default function StudioTemplates() {
         </Button>
       </div>
 
-      {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockTemplates.map((template) => (
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading templates...</span>
+        </div>
+      ) : templates.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>No templates found</p>
+          {searchQuery && (
+            <p className="text-sm mt-2">Try adjusting your search criteria</p>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {templates.map((template) => (
           <Card
             key={template.id}
             className="group hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer"
@@ -91,8 +93,8 @@ export default function StudioTemplates() {
                   {template.category}
                 </Badge>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>⭐</span>
-                  <span>{template.rating}</span>
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span>{template.rating.toFixed(1)}</span>
                 </div>
               </div>
               <CardTitle className="text-lg group-hover:text-primary transition-colors">
@@ -103,14 +105,20 @@ export default function StudioTemplates() {
             <CardContent>
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>{template.downloads.toLocaleString()} downloads</span>
-                <Button size="sm" variant="ghost" className="group-hover:bg-primary/10 group-hover:text-primary">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="group-hover:bg-primary/10 group-hover:text-primary"
+                  onClick={() => handleUseTemplate(template.id, template.name)}
+                >
                   Use Template
                 </Button>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

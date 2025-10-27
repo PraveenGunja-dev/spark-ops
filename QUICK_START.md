@@ -1,190 +1,227 @@
-# 🚀 Spark-Ops Control Plane - Quick Start
+# 🚀 Multi-Framework Execution Plane - Quick Start
 
-**Status**: ✅ Dev Server Running  
-**URL**: http://localhost:8080
+## What Was Built?
 
----
+A **complete multi-framework execution system** that allows developers to:
+1. Build workflows visually using React Flow
+2. Get AI-powered framework recommendations
+3. Execute workflows using LangChain, CrewAI, LangGraph, or Custom implementations
 
-## ✅ Issue Fixed
+## ⚡ Quick Install
 
-### Problem
-Vite's dependency cache was corrupted, causing MIME type errors when loading modules.
+If you haven't already installed the new framework dependencies:
 
-### Solution
-1. Killed all Node/Bun processes
-2. Cleared Vite cache
-3. Restarted dev server from correct directory
-
----
-
-## 🎯 What to Test Now
-
-### 1. **Open the Preview**
-Click the "Spark-Ops Control Plane" preview button that appeared above to view the app.
-
-### 2. **Navigate the Landing Page**
-- You should see two cards: "Orchestrator" and "Maestro"
-- Click "Open Orchestrator" to go to `/dashboard`
-
-### 3. **Test the Dashboard**
-- Should see ProjectSelector in the header (top right)
-- Should see 5 KPI cards with data
-- Should see charts and activity feed
-- **No errors in console**
-
-### 4. **Test Navigation**
-Click each sidebar link to verify they all work:
-- ✅ Dashboard (`/dashboard`)
-- ✅ Runs (`/runs`)
-- ✅ Agents (`/agents`)
-- ✅ **Workflows (`/workflows`)** ← NEW
-- ✅ Tools & Connectors
-- ✅ Approvals
-- ✅ Evaluations
-- ✅ Analytics
-- ✅ Policies & Governance
-
-### 5. **Test Project Selection**
-1. Go to any page (Dashboard, Agents, Workflows, Runs)
-2. Click ProjectSelector dropdown in header
-3. Select a project
-4. Navigate to different pages - same project should stay selected
-5. Refresh browser - project selection should persist
-
-### 6. **Test Create Dialogs**
-
-#### Agents Page
-1. Go to `/agents`
-2. Click "Create New Agent" button (top right, next to ProjectSelector)
-3. Fill the form:
-   - Name: TestAgent
-   - Runtime: Select one (python, nodejs, etc.)
-   - Model: Select one (gpt-4, claude-3, etc.)
-   - Provider: openai / anthropic / etc.
-   - Temperature: 0.7
-   - Max concurrent runs: 5
-4. Click "Create"
-5. Should see success toast
-6. Dialog should close
-7. New agent should appear in table
-
-#### Workflows Page
-1. Go to `/workflows`
-2. Click "Create Workflow" button (top right)
-3. Fill the form:
-   - Name: TestWorkflow
-   - Description: A test workflow
-   - Tags: test, demo (comma-separated)
-4. Click "Create"
-5. Should see success toast
-6. Dialog should close
-7. New workflow should appear in list
-
----
-
-## 🔧 If You Still See Errors
-
-### Clear Browser Cache
-**Hard Refresh** (very important!):
-- Chrome/Edge: `Ctrl + Shift + R` or `Ctrl + F5`
-- Firefox: `Ctrl + Shift + R`
-- Or open in **Incognito/Private mode**
-
-### Check Console
-Open DevTools (F12) → Console tab
-- Should see no errors
-- May see React Query DevTools initialization
-- Should see successful API calls
-
-### Restart Backend (if API calls fail)
-```powershell
+```bash
 cd backend
-.\venv\Scripts\Activate.ps1
-python -m uvicorn app.main:app --reload
+.\venv\Scripts\python.exe -m pip install langgraph langsmith crewai llama-index --upgrade
 ```
 
----
+## 🎯 Quick Test
 
-## 📊 Expected Behavior
+### 1. Start Backend (if not running)
+```bash
+cd backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
 
-### Navigation
-- ✅ All sidebar links work
-- ✅ No React Router context errors
-- ✅ Pages load without dynamic import errors
-- ✅ Workflows link visible in sidebar (with GitBranch icon)
+### 2. Test API Endpoints
+Visit http://localhost:8000/docs and try:
 
-### Project Selection
-- ✅ ProjectSelector visible on all pages
-- ✅ First project auto-selects on mount
-- ✅ Selection persists in localStorage
-- ✅ Selection consistent across pages
+**List Available Frameworks:**
+```
+GET /api/v1/workflows/frameworks
+```
 
-### Create Dialogs
-- ✅ Forms open when clicking create buttons
-- ✅ Form validation works
-- ✅ Toast notifications show on success/error
-- ✅ Data refreshes automatically after creation
+**Analyze a Workflow:**
+```
+POST /api/v1/workflows/analyze
 
-### Data Display
-- ✅ Real API data shown (not mock data)
-- ✅ Loading states while fetching
-- ✅ Empty states when no data
-- ✅ Proper error handling
+Body:
+{
+  "nodes": [
+    {"id": "1", "type": "agent", "data": {"label": "Agent 1"}},
+    {"id": "2", "type": "agent", "data": {"label": "Agent 2"}}
+  ],
+  "edges": [
+    {"source": "1", "target": "2"}
+  ]
+}
+```
 
----
+Expected response will suggest "crewai" for this multi-agent workflow.
 
-## 🎉 Integration Complete
+**Execute a Workflow:**
+```
+POST /api/v1/workflows/execute
 
-All features are now integrated:
-- ✅ Global project selection (ProjectContext)
-- ✅ React Query hooks for all entities
-- ✅ Create dialogs (Agents, Workflows)
-- ✅ Toast notifications (Sonner)
-- ✅ Proper routing (all pages accessible)
-- ✅ Loading and empty states
-- ✅ Type-safe frontend-backend communication
+Body:
+{
+  "framework": "langchain",
+  "nodes": [
+    {
+      "id": "agent-1",
+      "type": "agent",
+      "data": {
+        "label": "Research Agent",
+        "provider": "openai",
+        "model": "gpt-4",
+        "system_prompt": "You are a helpful research assistant.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [],
+  "input": {
+    "input": "What is AI?"
+  }
+}
+```
 
----
+## 🎨 Using the UI
+
+### Option 1: Enhanced Workflow Builder
+Use the new EnhancedWorkflowBuilder component that includes framework selection:
+
+```tsx
+import { EnhancedWorkflowBuilder } from '@/components/workflow/EnhancedWorkflowBuilder';
+
+function MyPage() {
+  return <EnhancedWorkflowBuilder />;
+}
+```
+
+### Option 2: Standalone Components
+Use individual components:
+
+```tsx
+import { FrameworkSelector } from '@/components/workflow/FrameworkSelector';
+import WorkflowBuilder from '@/components/workflow/WorkflowBuilder';
+
+function MyPage() {
+  const [framework, setFramework] = useState('langchain');
+  
+  return (
+    <>
+      <FrameworkSelector
+        selectedFramework={framework}
+        onSelect={setFramework}
+      />
+      <WorkflowBuilder />
+    </>
+  );
+}
+```
+
+## 📊 Framework Selection Guide
+
+The system automatically recommends frameworks based on:
+
+| Workflow Type | Recommended Framework | Reason |
+|--------------|----------------------|---------|
+| 1 agent | LangChain | Optimized for single-agent ReAct |
+| 2+ agents | CrewAI | Built for multi-agent collaboration |
+| Has conditions + parallel | LangGraph | State machine handles complexity |
+| Has conditions only | LangGraph | Excellent conditional routing |
+| Simple workflow | Custom | Lightweight, no overhead |
+
+## 🔧 Troubleshooting
+
+### Import Errors
+If you get import errors, make sure you've installed dependencies:
+```bash
+pip install langgraph langsmith crewai llama-index
+```
+
+### Framework Not Found
+Check that the framework name is lowercase:
+- ✅ "langchain"
+- ✅ "crewai"  
+- ✅ "langgraph"
+- ✅ "custom"
+- ❌ "LangChain"
+
+### Execution Fails
+Ensure you have valid API keys in `.env`:
+```env
+OPENAI_API_KEY=your-key-here
+ANTHROPIC_API_KEY=your-key-here
+```
 
 ## 📚 Documentation
 
-- [`INTEGRATION_COMPLETE.md`](./INTEGRATION_COMPLETE.md) - Full integration guide
-- [`TESTING_CHECKLIST.md`](./TESTING_CHECKLIST.md) - Comprehensive testing
-- [`FIXES_APPLIED.md`](./FIXES_APPLIED.md) - Router fixes
-- [`FRONTEND_INTEGRATION_GUIDE.md`](./FRONTEND_INTEGRATION_GUIDE.md) - React Query patterns
+- **MULTI_FRAMEWORK_IMPLEMENTATION.md** - Complete technical documentation
+- **IMPLEMENTATION_SUMMARY.md** - Quick overview and statistics
+- **QUICK_START.md** - This file
+
+## 🎯 What to Try
+
+### Example 1: Single-Agent Research
+```json
+{
+  "framework": "langchain",
+  "nodes": [{"id": "1", "type": "agent", "data": {...}}],
+  "edges": [],
+  "input": {"input": "Research topic X"}
+}
+```
+
+### Example 2: Multi-Agent Pipeline
+```json
+{
+  "framework": "crewai",
+  "nodes": [
+    {"id": "researcher", "type": "agent", "data": {"label": "Researcher"}},
+    {"id": "writer", "type": "agent", "data": {"label": "Writer"}}
+  ],
+  "edges": [
+    {"source": "researcher", "target": "writer"}
+  ],
+  "input": {"input": "Write an article about AI"}
+}
+```
+
+### Example 3: Conditional Workflow
+```json
+{
+  "framework": "langgraph",
+  "nodes": [
+    {"id": "1", "type": "agent", "data": {...}},
+    {"id": "2", "type": "decision", "data": {...}},
+    {"id": "3", "type": "agent", "data": {...}},
+    {"id": "4", "type": "agent", "data": {...}}
+  ],
+  "edges": [
+    {"source": "1", "target": "2"},
+    {"source": "2", "target": "3", "data": {"condition": "true"}},
+    {"source": "2", "target": "4", "data": {"condition": "false"}}
+  ]
+}
+```
+
+## ✅ Verification
+
+Run the verification script:
+```bash
+python verify_implementation.py
+```
+
+Or manually check:
+- [ ] Backend running without errors
+- [ ] Visit http://localhost:8000/docs
+- [ ] See "Workflow Execution" tag in API docs
+- [ ] Test `/workflows/frameworks` endpoint
+- [ ] Test `/workflows/analyze` endpoint
+
+## 🎉 Success!
+
+If you can see the Workflow Execution endpoints in Swagger and call them successfully, everything is working!
+
+Next steps:
+1. Build some test workflows in the UI
+2. Try different frameworks
+3. Compare execution times and costs
+4. Extend with custom tools
 
 ---
 
-## 🆘 Troubleshooting
-
-### Server Won't Start
-```powershell
-# Kill processes
-Get-Process | Where-Object {$_.ProcessName -like "*node*" -or $_.ProcessName -like "*bun*"} | Stop-Process -Force
-
-# Restart
-npm run dev
-```
-
-### Modules Won't Load
-```powershell
-# Clear Vite cache
-Remove-Item -Recurse -Force node_modules/.vite
-
-# Restart server
-npm run dev
-```
-
-### Still Getting Errors
-```powershell
-# Nuclear option - reinstall dependencies
-Remove-Item -Recurse -Force node_modules
-npm install
-npm run dev
-```
-
----
-
-**Last Updated**: October 16, 2025  
-**Dev Server**: ✅ Running on http://localhost:8080  
-**Status**: Ready for Testing
+**Happy Building! 🚀**

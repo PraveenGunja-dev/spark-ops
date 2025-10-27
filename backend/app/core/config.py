@@ -105,6 +105,24 @@ class Settings(BaseSettings):
     ENABLE_POLICIES: bool = True
     ENABLE_BUDGETS: bool = True
 
+    # APA - LLM Provider Configuration
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    DEFAULT_LLM_PROVIDER: str = "openai"
+
+    # APA - Vector Database Configuration
+    VECTOR_STORE_TYPE: str = "chromadb"
+    CHROMADB_PATH: str = "./data/chromadb"
+    PINECONE_API_KEY: str = ""
+    PINECONE_INDEX: str = "agent-memory"
+    PINECONE_ENVIRONMENT: str = "us-east-1-aws"
+
+    # APA - Agent Configuration
+    MAX_REASONING_ITERATIONS: int = 10
+    DEFAULT_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    ENABLE_AGENT_LEARNING: bool = True
+    ENABLE_HITL: bool = True
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | List[str]) -> List[str]:

@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageSkeleton } from "@/components/ui/loading-skeleton";
 import { MaestroLayout } from "./components/layout/MaestroLayout";
@@ -12,6 +12,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { initializeSocket, disconnectSocket } from "@/lib/websocket-client";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -44,6 +45,21 @@ const queryClient = new QueryClient({
   },
 });
 
+// WebSocket initializer component
+const WebSocketInitializer = () => {
+  useEffect(() => {
+    // Initialize WebSocket connection when app starts
+    const socket = initializeSocket();
+    
+    // Cleanup on unmount
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
+  
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -54,6 +70,7 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <ProjectProvider>
+                <WebSocketInitializer />
                 <Suspense fallback={<PageSkeleton />}>
                 <Routes>
                   {/* Public Routes */}
@@ -64,6 +81,7 @@ const App = () => (
                   {/* Redirect old routes to Maestro */}
                   <Route path="/dashboard" element={<Navigate to="/maestro" replace />} />
                   <Route path="/orchestrator/*" element={<Navigate to="/maestro" replace />} />
+                  <Route path="/approvals" element={<Navigate to="/maestro/hitl" replace />} />
                   
                   {/* APA/Maestro Routes (Main Application) */}
                   <Route path="/maestro" element={<ProtectedRoute><MaestroLayout><MaestroDashboard /></MaestroLayout></ProtectedRoute>} />

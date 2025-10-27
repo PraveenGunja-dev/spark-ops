@@ -633,6 +633,15 @@ const WorkflowBuilder = () => {
   const [selectedFramework, setSelectedFramework] = useState<string>('multiagent');
   const [selectedAgent, setSelectedAgent] = useState<string>('');
 
+  // Emit workflow changes to parent components via custom events
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('workflowUpdate', {
+        detail: { nodes, edges },
+      })
+    );
+  }, [nodes, edges]);
+
   // Get framework-specific node types
   const getNodeTypesForFramework = useCallback(() => {
     const nodeTypes = frameworkNodeTypes[selectedFramework];

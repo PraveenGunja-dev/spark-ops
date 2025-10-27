@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/StatusBadge';
 import { RunTimeline } from '@/components/visualizations/RunTimeline';
-import { ArrowLeft, RefreshCw, X, Clock, DollarSign, Loader2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, X, Clock, DollarSign, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { useRun, useRunSteps, useCancelRun, useRetryRun } from '@/hooks/useRuns';
 import { useWorkflow } from '@/hooks/useWorkflows';
 import { useAgent } from '@/hooks/useAgents';
 import { toast } from 'sonner';
+import { useRunUpdates } from '@/lib/websocket-client';
+import { useEffect } from 'react';
 
 export default function RunDetails() {
   const { id } = useParams<{ id: string }>();
@@ -20,9 +22,20 @@ export default function RunDetails() {
   const { data: workflow } = useWorkflow(run?.workflowId || '');
   const { data: agent } = useAgent(run?.agentId || '');
   
+  // WebSocket real-time updates
+  const { isConnected, lastUpdate } = useRunUpdates(id!);
+  
   // Mutations
   const cancelRun = useCancelRun();
   const retryRun = useRetryRun();
+  
+  // Handle real-time updates
+  useEffect(() => {
+    if (lastUpdate) {
+      // Refetch data when we receive an update
+      refetchRun();
+    }
+  }, [lastUpdate, refetchRun]);
 
   const handleCancel = async () => {
     if (!id) return;
@@ -83,6 +96,20 @@ export default function RunDetails() {
           <div>
             <h1 className="text-3xl font-bold font-mono">{run.id}</h1>
             <p className="text-muted-foreground">{workflow?.name || 'Unknown workflow'}</p>
+          </div>
+          {/* WebSocket connection indicator */}
+          <div className="ml-2">
+            {isConnected ? (
+              <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                <Wifi className="h-3 w-3" />
+                <span className="text-xs">Live</span>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="flex items-center gap-1 bg-amber-50 text-amber-700 border-amber-200">
+                <WifiOff className="h-3 w-3" />
+                <span className="text-xs">Offline</span>
+              </Badge>
+            )}
           </div>
         </div>
         <div className="flex gap-2">

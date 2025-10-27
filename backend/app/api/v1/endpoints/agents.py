@@ -135,7 +135,7 @@ async def get_agent(
         )
     
     # Verify project ownership
-    project = await ProjectService.get_by_id(db, agent.project_id)
+    project = await ProjectService.get_by_id(db, UUID(str(agent.project_id)))
     if not project or project.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -172,7 +172,7 @@ async def update_agent(
         )
     
     # Verify project ownership
-    project = await ProjectService.get_by_id(db, existing_agent.project_id)
+    project = await ProjectService.get_by_id(db, UUID(str(existing_agent.project_id)))
     if not project or project.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -209,7 +209,7 @@ async def delete_agent(
         )
     
     # Verify project ownership
-    project = await ProjectService.get_by_id(db, existing_agent.project_id)
+    project = await ProjectService.get_by_id(db, UUID(str(existing_agent.project_id)))
     if not project or project.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -246,7 +246,7 @@ async def get_agent_health(
         )
     
     # Verify project ownership
-    project = await ProjectService.get_by_id(db, agent.project_id)
+    project = await ProjectService.get_by_id(db, UUID(str(agent.project_id)))
     if not project or project.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -257,18 +257,26 @@ async def get_agent_health(
     # For now, return basic health info
     from datetime import datetime, timezone
     uptime_seconds = None
-    if agent.last_heartbeat:
-        uptime_seconds = int((datetime.now(timezone.utc) - agent.last_heartbeat).total_seconds())
+    last_heartbeat_value = getattr(agent, 'last_heartbeat', None)
+    if last_heartbeat_value:
+        uptime_seconds = int((datetime.now(timezone.utc) - last_heartbeat_value).total_seconds())
+    
+    # Extract values safely from SQLAlchemy columns
+    health_value = getattr(agent, 'health', 'unknown')
+    concurrency_value = getattr(agent, 'concurrency', 1)
+    autoscale_min_value = getattr(agent, 'autoscale_min', 1)
+    autoscale_max_value = getattr(agent, 'autoscale_max', 10)
+    autoscale_target_cpu_value = getattr(agent, 'autoscale_target_cpu', 70)
     
     return AgentHealthResponse(
-        health=agent.health,
-        last_heartbeat=agent.last_heartbeat,
+        health=str(health_value),
+        last_heartbeat=last_heartbeat_value,
         metrics={
-            "concurrency": agent.concurrency,
+            "concurrency": int(concurrency_value),
             "autoscale": {
-                "min": agent.autoscale_min,
-                "max": agent.autoscale_max,
-                "targetCpu": agent.autoscale_target_cpu
+                "min": int(autoscale_min_value),
+                "max": int(autoscale_max_value),
+                "targetCpu": int(autoscale_target_cpu_value)
             }
         },
         uptime_seconds=uptime_seconds,

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!C:\\Users\\cogni\\spark-ops/**)",
+      "Edit(!C:\\Users\\cogni\\spark-ops/**)"
+    ],
+    "allow": [
+      "Read(C:\\Users\\cogni\\spark-ops/**)",
+      "Edit(C:\\Users\\cogni\\spark-ops/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}

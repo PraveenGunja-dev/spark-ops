@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Plus, Download, MoreVertical, FolderOpen } from 'lucide-react';
+import { Search, SlidersHorizontal, Plus, Download, MoreVertical, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,35 +17,45 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-const mockProjects = [
-  { id: 1, name: 'Customer Onboarding Flow', content: 'Workflow', edited: '2 hours ago', status: 'Draft' },
-  { id: 2, name: 'Invoice Processing', content: 'Automation', edited: '1 day ago', status: 'Published' },
-  { id: 3, name: 'Data Extraction Pipeline', content: 'Agent', edited: '3 days ago', status: 'Draft' },
-  { id: 4, name: 'Email Classifier', content: 'Workflow', edited: '5 days ago', status: 'Testing' },
-  { id: 5, name: 'Report Generator', content: 'Automation', edited: '1 week ago', status: 'Published' },
-  { id: 6, name: 'Sentiment Analysis Bot', content: 'Agent', edited: '2 weeks ago', status: 'Draft' },
-  { id: 7, name: 'Lead Scoring System', content: 'Workflow', edited: '3 weeks ago', status: 'Published' },
-  { id: 8, name: 'Document Parser', content: 'Automation', edited: '1 month ago', status: 'Archived' },
-];
+import { useWorkflows } from '@/hooks/useWorkflows';
+import { useProject } from '@/contexts/ProjectContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function StudioWorkspace() {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const { selectedProjectId } = useProject();
+  
+  // Fetch workflows (which are the "projects" in the studio)
+  const { data: workflowsData, isLoading } = useWorkflows(selectedProjectId || '', 1, 100);
+  const workflows = workflowsData?.items || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Published':
+      case 'active':
         return 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20';
-      case 'Draft':
+      case 'draft':
         return 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20';
-      case 'Testing':
-        return 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20';
-      case 'Archived':
+      case 'inactive':
         return 'bg-muted text-muted-foreground hover:bg-muted/80';
       default:
         return 'bg-muted text-muted-foreground hover:bg-muted/80';
     }
   };
+  
+  // Filter workflows by search
+  const filteredWorkflows = workflows.filter((workflow) =>
+    workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading workflows...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -98,23 +108,32 @@ export default function StudioWorkspace() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockProjects
-              .filter((project) =>
-                project.name.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((project) => (
-                <TableRow key={project.id} className="group hover:bg-muted/30 cursor-pointer">
+            {filteredWorkflows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  No workflows found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredWorkflows.map((workflow) => (
+                <TableRow 
+                  key={workflow.id} 
+                  className="group hover:bg-muted/30 cursor-pointer"
+                  onClick={() => navigate(`/studio/workflow/${workflow.id}`)}
+                >
                   <TableCell>
                     <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
                       <FolderOpen className="h-4 w-4 text-primary" />
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{project.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{project.content}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{project.edited}</TableCell>
+                  <TableCell className="font-medium">{workflow.name}</TableCell>
+                  <TableCell className="text-muted-foreground">Workflow</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {new Date(workflow.updated_at).toLocaleDateString()}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={getStatusColor(project.status)}>
-                      {project.status}
+                    <Badge variant="secondary" className={getStatusColor(workflow.status)}>
+                      {workflow.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -124,28 +143,33 @@ export default function StudioWorkspace() {
                           variant="ghost"
                           size="icon"
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Open</DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                        <DropdownMenuItem>Share</DropdownMenuItem>
-                        <DropdownMenuItem>Export</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/studio/workflow/${workflow.id}`);
+                        }}>Open</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>Share</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>Export</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Footer Info */}
       <div className="text-sm text-muted-foreground">
-        Showing {mockProjects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length} of {mockProjects.length} automations
+        Showing {filteredWorkflows.length} of {workflows.length} automations
       </div>
     </div>
   );

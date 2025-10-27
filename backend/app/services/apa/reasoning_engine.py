@@ -13,14 +13,18 @@ from app.models import Agent
 try:
     from openai import AsyncOpenAI
     OPENAI_AVAILABLE = True
+    OPENAI_CLIENT_CLASS = AsyncOpenAI
 except ImportError:
     OPENAI_AVAILABLE = False
+    OPENAI_CLIENT_CLASS = None  # type: ignore
 
 try:
     from anthropic import AsyncAnthropic
     ANTHROPIC_AVAILABLE = True
+    ANTHROPIC_CLIENT_CLASS = AsyncAnthropic
 except ImportError:
     ANTHROPIC_AVAILABLE = False
+    ANTHROPIC_CLIENT_CLASS = None  # type: ignore
 
 
 class ReasoningEngine:
@@ -34,15 +38,15 @@ class ReasoningEngine:
         self.llm_provider = llm_provider
         
         # Initialize LLM clients
-        if llm_provider == "openai" and OPENAI_AVAILABLE:
+        if llm_provider == "openai" and OPENAI_AVAILABLE and OPENAI_CLIENT_CLASS:
             api_key = os.getenv("OPENAI_API_KEY")
-            self.openai_client = AsyncOpenAI(api_key=api_key) if api_key else None
+            self.openai_client = OPENAI_CLIENT_CLASS(api_key=api_key) if api_key else None
         else:
             self.openai_client = None
         
-        if llm_provider == "anthropic" and ANTHROPIC_AVAILABLE:
+        if llm_provider == "anthropic" and ANTHROPIC_AVAILABLE and ANTHROPIC_CLIENT_CLASS:
             api_key = os.getenv("ANTHROPIC_API_KEY")
-            self.anthropic_client = AsyncAnthropic(api_key=api_key) if api_key else None
+            self.anthropic_client = ANTHROPIC_CLIENT_CLASS(api_key=api_key) if api_key else None
         else:
             self.anthropic_client = None
     
@@ -79,10 +83,18 @@ class ReasoningEngine:
         )
         
         # Call appropriate LLM based on agent configuration
-        provider = agent.provider.lower() if agent.provider else self.llm_provider
-        model = agent.model or "gpt-4"
-        temperature = (agent.temperature / 10.0) if agent.temperature else 0.7
-        max_tokens = agent.max_tokens or 2000
+        # Extract actual values from SQLAlchemy columns
+        provider_value = getattr(agent, 'provider', None)
+        provider = provider_value.lower() if provider_value else self.llm_provider
+        
+        model_value = getattr(agent, 'model', None)
+        model = str(model_value) if model_value else "gpt-4"
+        
+        temp_value = getattr(agent, 'temperature', None)
+        temperature = float(temp_value / 10.0) if temp_value is not None else 0.7
+        
+        max_tokens_value = getattr(agent, 'max_tokens', None)
+        max_tokens = int(max_tokens_value) if max_tokens_value is not None else 2000
         
         try:
             if provider == "openai" and self.openai_client:
@@ -256,7 +268,7 @@ Result: [The final result]
                 max_tokens=max_tokens,
             )
             
-            content = response.choices[0].message.content
+            content = response.choices[0].message.content or ""
             tokens_used = response.usage.total_tokens if response.usage else 0
             
             # Parse the LLM response to extract thought and action
@@ -291,7 +303,11 @@ Result: [The final result]
                 ],
             )
             
-            content = response.content[0].text
+            # Handle different content block types from Anthropic
+            content_block = response.content[0]
+            # Use getattr to safely access text attribute
+            content = getattr(content_block, 'text', str(content_block))
+            
             tokens_used = response.usage.input_tokens + response.usage.output_tokens if response.usage else 0
             
             # Parse the LLM response to extract thought and action

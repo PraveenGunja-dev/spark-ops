@@ -158,6 +158,7 @@ ENABLE_HITL=True
 
 ## 📚 Documentation
 
+- **[Control & Execution Plane Status](./CONTROL_AND_EXECUTION_PLANE_STATUS.md)** - Current implementation status
 - **[Quick Reference](./QUICK_REFERENCE.md)** - Cheat sheet for developers (routes, APIs, commands)
 - **[Maestro + APA Relationship](./MAESTRO_APA_RELATIONSHIP.md)** - Understanding the two-layer architecture
 - **[Architecture Guide](./ARCHITECTURE.md)** - Complete system architecture (Maestro + APA layers)

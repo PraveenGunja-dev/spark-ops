@@ -177,7 +177,8 @@ class AgentExecutor:
                 )
                 
                 # Store memory if enabled
-                if agent.enable_memory:
+                enable_memory_value = getattr(agent, 'enable_memory', True)
+                if enable_memory_value:
                     await self.context_manager.store_memory(
                         agent_id=agent.id,
                         content=f"Action: {action.get('type')} - Result: {observation.get('status')}",
@@ -206,7 +207,8 @@ class AgentExecutor:
                 )
                 
                 # Store learning feedback
-                if agent.enable_learning:
+                enable_learning_value = getattr(agent, 'enable_learning', True)
+                if enable_learning_value:
                     await self._store_learning_feedback(
                         agent_id=agent.id,
                         run_id=execution.id,
@@ -224,7 +226,8 @@ class AgentExecutor:
             state["reason"] = f"Maximum iterations ({max_iterations}) exceeded"
         
         # Store final learning feedback on success
-        if state["status"] == "completed" and agent.enable_learning:
+        enable_learning_value = getattr(agent, 'enable_learning', True)
+        if state["status"] == "completed" and enable_learning_value:
             await self._store_learning_feedback(
                 agent_id=agent.id,
                 run_id=execution.id,
@@ -252,12 +255,12 @@ class AgentExecutor:
         """
         Execute a specific action using the tool registry
         """
-        action_type = action.get("type")
+        action_type = action.get("type", "unknown")
         action_params = action.get("parameters", {})
         
         # Execute tool through registry
         result = await self.tool_registry.execute_tool(
-            tool_name=action_type,
+            tool_name=str(action_type),
             parameters=action_params,
             agent_id=agent.id,
         )

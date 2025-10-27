@@ -25,8 +25,9 @@ import { CreateAgentDialog } from '@/components/agents/CreateAgentDialog';
 import { EditAgentDialog } from '@/components/agents/EditAgentDialog';
 import { Pagination } from '@/components/ui/pagination';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useAgentHealthUpdates } from '@/lib/websocket-client';
 
 export default function Agents() {
   const [page, setPage] = useState(1);
@@ -38,9 +39,19 @@ export default function Agents() {
   const { selectedProjectId } = useProject();
   
   // Fetch agents
-  const { data, isLoading } = useAgents(selectedProjectId || '', page, pageSize);
+  const { data, isLoading, refetch: refetchAgents } = useAgents(selectedProjectId || '', page, pageSize);
   const agents = data?.items || [];
   const totalPages = data?.totalPages || 1;
+  
+  // WebSocket for real-time agent health updates
+  const { isConnected, healthStatus } = useAgentHealthUpdates(selectedProjectId || '');
+  
+  // Refetch agents when health status changes
+  useEffect(() => {
+    if (healthStatus) {
+      refetchAgents();
+    }
+  }, [healthStatus, refetchAgents]);
   
   // Delete mutation
   const deleteAgent = useDeleteAgent();

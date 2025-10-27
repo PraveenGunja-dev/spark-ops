@@ -32,7 +32,6 @@ const mainItems = [
   { title: 'Agents', url: '/agents', icon: Bot },
   { title: 'Workflows', url: '/workflows', icon: GitBranch },
   { title: 'Tools & Connectors', url: '/tools', icon: Wrench },
-  { title: 'Approvals', url: '/approvals', icon: UserCheck },
   { title: 'HITL Dashboard', url: '/hitl', icon: AlertCircle },
   { title: 'Evaluations', url: '/evaluations', icon: BarChart },
   { title: 'Analytics', url: '/analytics', icon: BarChart },

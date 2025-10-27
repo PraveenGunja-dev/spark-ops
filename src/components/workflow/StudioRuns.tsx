@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,62 +10,17 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Play, Square, Eye } from 'lucide-react';
-import { RunStatus } from '@/lib/types';
-
-// Mock data for workflow runs
-const mockRuns: {
-  id: string;
-  status: RunStatus;
-  startedAt: string;
-  durationMs?: number;
-  tokensPrompt?: number;
-  tokensCompletion?: number;
-  usdCost?: number;
-  agent: string;
-}[] = [
-  {
-    id: 'run-001',
-    status: 'succeeded',
-    startedAt: '2025-10-15T10:30:00Z',
-    durationMs: 45200,
-    tokensPrompt: 12500,
-    tokensCompletion: 8750,
-    usdCost: 0.042,
-    agent: 'ResearchAgent'
-  },
-  {
-    id: 'run-002',
-    status: 'running',
-    startedAt: '2025-10-15T09:15:00Z',
-    tokensPrompt: 8400,
-    tokensCompletion: 5200,
-    agent: 'MarketingAgent'
-  },
-  {
-    id: 'run-003',
-    status: 'failed',
-    startedAt: '2025-10-14T16:45:00Z',
-    durationMs: 120500,
-    tokensPrompt: 32000,
-    tokensCompletion: 18750,
-    usdCost: 0.126,
-    agent: 'SupportAgent'
-  },
-  {
-    id: 'run-004',
-    status: 'succeeded',
-    startedAt: '2025-10-14T14:20:00Z',
-    durationMs: 78300,
-    tokensPrompt: 18700,
-    tokensCompletion: 12450,
-    usdCost: 0.068,
-    agent: 'ResearchAgent'
-  }
-];
+import { Play, Square, Eye, Loader2 } from 'lucide-react';
+import { useRuns } from '@/hooks/useRuns';
+import { useNavigate } from 'react-router-dom';
 
 export default function StudioRuns() {
+  const navigate = useNavigate();
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
+  
+  // Fetch real runs data
+  const { data: runsData, isLoading } = useRuns(1, 100);
+  const runs = runsData?.runs || [];
 
   const handleRunWorkflow = () => {
     // In a real app, this would start a new workflow run
@@ -81,6 +36,18 @@ export default function StudioRuns() {
     // In a real app, this would navigate to the run details
     alert(`Viewing run ${runId}`);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading runs...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -104,7 +71,7 @@ export default function StudioRuns() {
             <TableHeader>
               <TableRow>
                 <TableHead>Run ID</TableHead>
-                <TableHead>Agent</TableHead>
+                <TableHead>Workflow</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Started</TableHead>
                 <TableHead>Duration</TableHead>
@@ -114,14 +81,21 @@ export default function StudioRuns() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockRuns.map((run) => (
+              {runs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    No workflow runs found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                runs.map((run) => (
                 <TableRow 
                   key={run.id} 
                   className={selectedRun === run.id ? "bg-muted" : ""}
                   onClick={() => setSelectedRun(run.id === selectedRun ? null : run.id)}
                 >
                   <TableCell className="font-medium">{run.id}</TableCell>
-                  <TableCell>{run.agent}</TableCell>
+                  <TableCell>{run.workflowId || 'N/A'}</TableCell>
                   <TableCell>
                     <StatusBadge status={run.status} />
                   </TableCell>
@@ -141,7 +115,7 @@ export default function StudioRuns() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleViewRun(run.id)}>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/runs/${run.id}`)}>
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
@@ -157,7 +131,8 @@ export default function StudioRuns() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

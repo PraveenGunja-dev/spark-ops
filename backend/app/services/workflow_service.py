@@ -2,13 +2,15 @@
 Workflow Service Layer
 Business logic for workflow CRUD operations
 """
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 from uuid import UUID
+from datetime import datetime, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.workflow import Workflow, WorkflowStatus
 from app.schemas.workflow import WorkflowCreate, WorkflowUpdate
+from app.services.websocket_service import WebSocketService
 
 
 class WorkflowService:
@@ -70,6 +72,16 @@ class WorkflowService:
         workflow.metadata_['version_history'][0]['updated_at'] = workflow.created_at.isoformat()
         await db.commit()
         await db.refresh(workflow)
+        
+        # Emit activity feed update for workflow creation
+        project_id = str(workflow.project_id)
+        activity_data = {
+            "id": str(workflow.id),
+            "name": workflow.name,
+            "status": workflow.status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_activity(project_id, "workflow_created", activity_data)
         
         return workflow
     
@@ -183,6 +195,17 @@ class WorkflowService:
         
         await db.commit()
         await db.refresh(workflow)
+        
+        # Emit activity feed update for workflow update
+        project_id = str(workflow.project_id)
+        activity_data = {
+            "id": str(workflow.id),
+            "name": workflow.name,
+            "status": workflow.status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_activity(project_id, "workflow_updated", activity_data)
+        
         return workflow
     
     @staticmethod

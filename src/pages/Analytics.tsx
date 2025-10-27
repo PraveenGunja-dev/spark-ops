@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -24,56 +25,26 @@ import {
   Area
 } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Download } from 'lucide-react';
-import { mockRuns, mockAgents, mockTools } from '@/lib/mockData';
-
-// Mock analytics data
-const latencyData = [
-  { hour: '00:00', latency: 420, count: 12 },
-  { hour: '04:00', latency: 380, count: 8 },
-  { hour: '08:00', latency: 560, count: 24 },
-  { hour: '12:00', latency: 620, count: 32 },
-  { hour: '16:00', latency: 480, count: 28 },
-  { hour: '20:00', latency: 510, count: 20 },
-];
-
-const costData = [
-  { day: 'Mon', cost: 125.4, runs: 42 },
-  { day: 'Tue', cost: 189.7, runs: 58 },
-  { day: 'Wed', cost: 156.2, runs: 48 },
-  { day: 'Thu', cost: 210.8, runs: 65 },
-  { day: 'Fri', cost: 245.3, runs: 78 },
-  { day: 'Sat', cost: 98.6, runs: 32 },
-  { day: 'Sun', cost: 87.4, runs: 28 },
-];
-
-const modelUsage = [
-  { model: 'gpt-4o', usage: 45, cost: 120.5 },
-  { model: 'llama-3.1-70b', usage: 30, cost: 65.2 },
-  { model: 'gpt-4o-mini', usage: 20, cost: 32.8 },
-  { model: 'claude-3.5', usage: 5, cost: 28.7 },
-];
-
-const toolUtilization = [
-  { tool: 'HTTP', usage: 1200, success: 98.2 },
-  { tool: 'Browser', usage: 850, success: 92.5 },
-  { tool: 'Postgres', usage: 650, success: 99.1 },
-  { tool: 'Slack', usage: 420, success: 95.7 },
-  { tool: 'Gmail', usage: 380, success: 97.3 },
-];
-
-const throughputData = [
-  { time: '00:00', throughput: 12, errors: 2 },
-  { time: '04:00', throughput: 8, errors: 1 },
-  { time: '08:00', throughput: 24, errors: 3 },
-  { time: '12:00', throughput: 32, errors: 5 },
-  { time: '16:00', throughput: 28, errors: 4 },
-  { time: '20:00', throughput: 20, errors: 2 },
-];
+import { Calendar, Download, Loader2 } from 'lucide-react';
+import {
+  useLatencyAnalytics,
+  useCostAnalytics,
+  useModelUsageAnalytics,
+  useToolUtilizationAnalytics,
+  useThroughputAnalytics,
+} from '@/hooks/useAnalytics';
 
 const COLORS = ['#61CE70', '#1085e4', '#8884d8', '#ffc658'];
 
 export default function Analytics() {
+  const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d' | '90d'>('7d');
+  
+  // Fetch analytics data
+  const { data: latencyData, isLoading: latencyLoading } = useLatencyAnalytics(timeRange, 'hour');
+  const { data: costData, isLoading: costLoading } = useCostAnalytics(timeRange, 'day');
+  const { data: modelUsage, isLoading: modelsLoading } = useModelUsageAnalytics(timeRange);
+  const { data: toolUtilization, isLoading: toolsLoading } = useToolUtilizationAnalytics(timeRange);
+  const { data: throughputData, isLoading: throughputLoading } = useThroughputAnalytics('24h', 'hour');
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -82,7 +53,7 @@ export default function Analytics() {
           <p className="text-muted-foreground">Cross-tenant performance trends and cost insights</p>
         </div>
         <div className="flex gap-2">
-          <Select defaultValue="7d">
+          <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -122,15 +93,21 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={latencyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="hour" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="latency" stroke="#61CE70" fill="#61CE70" fillOpacity={0.2} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {latencyLoading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={latencyData || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="latency" stroke="#61CE70" fill="#61CE70" fillOpacity={0.2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
             
@@ -142,15 +119,21 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={throughputData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="throughput" fill="#1085e4" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {throughputLoading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={throughputData || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="throughput" fill="#1085e4" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -28,7 +28,7 @@ export function TopBar() {
         location.pathname.startsWith('/agents') || 
         location.pathname.startsWith('/workflows') || 
         location.pathname.startsWith('/tools') || 
-        location.pathname.startsWith('/approvals') || 
+        location.pathname.startsWith('/hitl') || 
         location.pathname.startsWith('/evaluations') || 
         location.pathname.startsWith('/analytics') || 
         location.pathname.startsWith('/policies') || 

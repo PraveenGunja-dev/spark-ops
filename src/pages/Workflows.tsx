@@ -8,9 +8,10 @@ import { CreateWorkflowDialog } from '@/components/workflows/CreateWorkflowDialo
 import { EditWorkflowDialog } from '@/components/workflows/EditWorkflowDialog';
 import { Pagination } from '@/components/ui/pagination';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { useState } from 'react';
-import { GitBranch, Clock, TrendingUp, Plus, Trash2, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { GitBranch, Clock, TrendingUp, Plus, Trash2, Settings, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { useActivityFeed } from '@/lib/websocket-client';
 
 export default function Workflows() {
   const [page, setPage] = useState(1);
@@ -22,9 +23,29 @@ export default function Workflows() {
   const { selectedProjectId } = useProject();
   
   // Fetch workflows
-  const { data, isLoading } = useWorkflows(selectedProjectId || '', page, pageSize);
+  const { data, isLoading, refetch: refetchWorkflows } = useWorkflows(selectedProjectId || '', page, pageSize);
   const workflows = data?.items || [];
   const totalPages = data?.totalPages || 1;
+  
+  // WebSocket for real-time activity updates
+  const { isConnected, activities } = useActivityFeed();
+  
+  // Refetch workflows when new activities are received
+  useEffect(() => {
+    if (activities && activities.length > 0) {
+      // Check if any activity is related to workflows
+      const hasWorkflowActivity = activities.some(activity => 
+        activity.type === 'workflow_created' || 
+        activity.type === 'workflow_updated' || 
+        activity.type === 'workflow_deleted' ||
+        activity.type === 'workflow_run'
+      );
+      
+      if (hasWorkflowActivity) {
+        refetchWorkflows();
+      }
+    }
+  }, [activities, refetchWorkflows]);
   
   // Delete mutation
   const deleteWorkflow = useDeleteWorkflow();
@@ -50,9 +71,25 @@ export default function Workflows() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Workflows</h1>
-          <p className="text-muted-foreground">Automation pipelines and processes</p>
+        <div className="flex items-center gap-2">
+          <div>
+            <h1 className="text-3xl font-bold">Workflows</h1>
+            <p className="text-muted-foreground">Automation pipelines and processes</p>
+          </div>
+          {/* WebSocket connection indicator */}
+          <div className="ml-2">
+            {isConnected ? (
+              <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                <Wifi className="h-3 w-3" />
+                <span className="text-xs">Live</span>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="flex items-center gap-1 bg-amber-50 text-amber-700 border-amber-200">
+                <WifiOff className="h-3 w-3" />
+                <span className="text-xs">Offline</span>
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <ProjectSelector />

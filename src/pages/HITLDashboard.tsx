@@ -1,129 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { HITLApprovalCard } from '@/components/apa/HITLApprovalCard';
-import { Shield, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Shield, CheckCircle2, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock data - replace with actual API calls
-const mockHITLRequests = [
-  {
-    id: '1',
-    run_id: 'run-123',
-    agent_id: 'agent-456',
-    request_type: 'action_approval',
-    reason: 'Agent attempting to delete user data. This requires human approval due to high risk.',
-    action_details: {
-      type: 'database_query',
-      description: 'Delete user account and associated data',
-      parameters: {
-        user_id: '12345',
-        cascade: true,
-      },
-    },
-    risk_level: 'critical' as const,
-    status: 'pending' as const,
-    requested_at: new Date(Date.now() - 5 * 60000).toISOString(),
-  },
-  {
-    id: '2',
-    run_id: 'run-124',
-    agent_id: 'agent-789',
-    request_type: 'decision_input',
-    reason: 'Customer requested a refund exceeding standard policy limits.',
-    action_details: {
-      type: 'financial_transaction',
-      description: 'Process customer refund',
-      parameters: {
-        amount: 500,
-        customer_id: '67890',
-        reason: 'Product defect',
-      },
-    },
-    risk_level: 'high' as const,
-    status: 'pending' as const,
-    requested_at: new Date(Date.now() - 15 * 60000).toISOString(),
-  },
-  {
-    id: '3',
-    run_id: 'run-125',
-    agent_id: 'agent-456',
-    request_type: 'action_approval',
-    reason: 'Agent wants to send marketing email to user who previously opted out.',
-    action_details: {
-      type: 'send_email',
-      description: 'Send promotional email',
-      parameters: {
-        recipient: 'user@example.com',
-        template: 'summer_sale',
-      },
-    },
-    risk_level: 'medium' as const,
-    status: 'pending' as const,
-    requested_at: new Date(Date.now() - 30 * 60000).toISOString(),
-  },
-];
-
-const mockStats = {
-  by_status: {
-    pending: 3,
-    approved: 12,
-    rejected: 4,
-  },
-  by_risk_level: {
-    low: 2,
-    medium: 5,
-    high: 8,
-    critical: 4,
-  },
-};
+import { usePendingHITL, useApproveHITL, useRejectHITL } from '@/hooks/useAPA';
 
 export default function HITLDashboard() {
-  const [requests, setRequests] = useState(mockHITLRequests);
   const [activeTab, setActiveTab] = useState('pending');
+  
+  // Fetch pending HITL requests with auto-refresh every 10 seconds
+  const { data: hitlData, isLoading, error } = usePendingHITL({
+    refetchInterval: 10000,
+  });
+  
+  // Approve HITL mutation
+  const { mutate: approveHITL, isPending: isApproving } = useApproveHITL();
+  
+  // Reject HITL mutation
+  const { mutate: rejectHITL, isPending: isRejecting } = useRejectHITL();
 
   const handleApprove = async (requestId: string, feedback?: string) => {
-    try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === requestId 
-            ? { ...req, status: 'approved' as const }
-            : req
-        )
-      );
-      
-      toast.success('Request approved successfully');
-    } catch (error) {
-      toast.error('Failed to approve request');
-    }
+    approveHITL(
+      { requestId, feedback },
+      {
+        onSuccess: (data) => {
+          toast.success('Request approved successfully');
+        },
+        onError: (error: any) => {
+          toast.error(error.message || 'Failed to approve request');
+        },
+      }
+    );
   };
 
   const handleReject = async (requestId: string, feedback?: string) => {
-    try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === requestId 
-            ? { ...req, status: 'rejected' as const }
-            : req
-        )
-      );
-      
-      toast.success('Request rejected');
-    } catch (error) {
-      toast.error('Failed to reject request');
-    }
+    rejectHITL(
+      { requestId, feedback: feedback || 'Request rejected by human reviewer' },
+      {
+        onSuccess: (data) => {
+          toast.success('Request rejected');
+        },
+        onError: (error: any) => {
+          toast.error(error.message || 'Failed to reject request');
+        },
+      }
+    );
   };
 
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const approvedRequests = requests.filter(r => r.status === 'approved');
-  const rejectedRequests = requests.filter(r => r.status === 'rejected');
+  // Filter requests by status and ensure action_details has required structure
+  const requests = (hitlData?.requests || []).map(req => ({
+    ...req,
+    action_details: {
+      type: req.action_details?.type || 'unknown',
+      description: req.action_details?.description,
+      parameters: req.action_details?.parameters || req.action_details,
+    },
+  }));
+  const pendingRequests = useMemo(() => requests.filter(r => r.status === 'pending'), [requests]);
+  const approvedRequests = useMemo(() => requests.filter(r => r.status === 'approved'), [requests]);
+  const rejectedRequests = useMemo(() => requests.filter(r => r.status === 'rejected'), [requests]);
+  
+  // Calculate stats from real data
+  const stats = useMemo(() => {
+    const byStatus = {
+      pending: pendingRequests.length,
+      approved: approvedRequests.length,
+      rejected: rejectedRequests.length,
+    };
+    
+    const byRiskLevel = requests.reduce((acc, req) => {
+      const level = req.risk_level || 'medium';
+      acc[level] = (acc[level] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return { by_status: byStatus, by_risk_level: byRiskLevel };
+  }, [requests, pendingRequests, approvedRequests, rejectedRequests]);
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -148,7 +102,7 @@ export default function HITLDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.by_status.pending}</div>
+            <div className="text-2xl font-bold">{stats.by_status.pending}</div>
             <p className="text-xs text-muted-foreground">Awaiting review</p>
           </CardContent>
         </Card>
@@ -161,7 +115,7 @@ export default function HITLDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.by_status.approved}</div>
+            <div className="text-2xl font-bold">{stats.by_status.approved}</div>
             <p className="text-xs text-muted-foreground">This week</p>
           </CardContent>
         </Card>
@@ -174,7 +128,7 @@ export default function HITLDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.by_status.rejected}</div>
+            <div className="text-2xl font-bold">{stats.by_status.rejected}</div>
             <p className="text-xs text-muted-foreground">This week</p>
           </CardContent>
         </Card>
@@ -188,7 +142,7 @@ export default function HITLDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockStats.by_risk_level.high + mockStats.by_risk_level.critical}
+              {(stats.by_risk_level.high || 0) + (stats.by_risk_level.critical || 0)}
             </div>
             <p className="text-xs text-muted-foreground">Active requests</p>
           </CardContent>
@@ -212,7 +166,12 @@ export default function HITLDashboard() {
 
         {/* Pending Tab */}
         <TabsContent value="pending" className="space-y-4">
-          {pendingRequests.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Loading pending requests...</span>
+            </div>
+          ) : pendingRequests.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {pendingRequests.map(request => (
                 <HITLApprovalCard

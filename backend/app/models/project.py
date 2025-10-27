@@ -42,6 +42,8 @@ class Project(Base, TimestampMixin):
     agents = relationship("Agent", back_populates="project", cascade="all, delete-orphan")
     workflows = relationship("Workflow", back_populates="project", cascade="all, delete-orphan")
     tools = relationship("Tool", back_populates="project", cascade="all, delete-orphan")
+    schedules = relationship("Schedule", back_populates="project", cascade="all, delete-orphan")
+    policies = relationship("Policy", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Project {self.name}>"

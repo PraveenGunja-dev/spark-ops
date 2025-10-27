@@ -64,6 +64,7 @@ class Workflow(Base, TimestampMixin):
     # Relationships
     project = relationship("Project", back_populates="workflows")
     executions = relationship("WorkflowExecution", back_populates="workflow", cascade="all, delete-orphan")
+    schedules = relationship("Schedule", back_populates="workflow", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Workflow {self.name} ({self.status})>"

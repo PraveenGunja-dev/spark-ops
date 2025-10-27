@@ -52,8 +52,13 @@ class AgentMemory(Base):
     memory_type = Column(String(50), nullable=False, index=True)  # "episodic", "semantic", "procedural"
     content = Column(Text, nullable=False)
     
-    # Vector embedding for semantic search (using PostgreSQL array for now, pgvector integration later)
-    embedding = Column(ARRAY(Float), nullable=True)
+    # Vector embedding for semantic search using pgvector
+    try:
+        from sqlalchemy.dialects.postgresql import VECTOR
+        embedding = Column(VECTOR(1536), nullable=True)
+    except ImportError:
+        # Fallback to array if pgvector is not available
+        embedding = Column(ARRAY(Float), nullable=True)
     
     # Metadata and importance
     metadata_ = Column("metadata", JSONB, default=dict, nullable=False)

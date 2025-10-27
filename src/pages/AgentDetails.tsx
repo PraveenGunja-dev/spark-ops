@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Brain, Eye, MessageSquare, Settings, Play } from 'lucide-react';
+import { ArrowLeft, Brain, Eye, MessageSquare, Settings, Play, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,115 +9,103 @@ import { Separator } from '@/components/ui/separator';
 import { ReasoningTraceViewer } from '@/components/apa/ReasoningTraceViewer';
 import { AgentMemoryViewer } from '@/components/apa/AgentMemoryViewer';
 import { toast } from 'sonner';
+import { useAgent } from '@/hooks/useAgents';
+import { useAgentReason, useReasoningTraces, useAgentMemory, useSearchMemory } from '@/hooks/useAPA';
 
-// Mock data - replace with actual API calls
-const mockAgent = {
-  id: '1',
-  name: 'Customer Support Agent',
-  description: 'Handles customer inquiries and support tickets',
-  type: 'task_oriented',
-  status: 'active',
-  model: 'gpt-4',
-  provider: 'openai',
-  temperature: 7,
-  max_tokens: 2000,
-  enable_reasoning: true,
-  enable_collaboration: false,
-  enable_learning: true,
-  max_iterations: 10,
-  created_at: '2025-10-15T10:00:00Z',
-};
-
-const mockReasoningTraces = [
-  {
-    id: '1',
-    run_id: 'run-123',
-    step_index: 0,
-    thought: 'I need to search for information about the user\'s question regarding API rate limits.',
-    action: {
-      type: 'search',
-      description: 'Search knowledge base',
-      parameters: { query: 'API rate limits' },
-    },
-    observation: {
-      status: 'success',
-      result: 'Found 3 relevant articles about API rate limiting.',
-    },
-    reflection: 'The search was successful and returned relevant information.',
-    tokens_used: 150,
-    latency_ms: 1250,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    run_id: 'run-123',
-    step_index: 1,
-    thought: 'Now I should calculate the current rate limit based on the user\'s plan.',
-    action: {
-      type: 'calculate',
-      description: 'Calculate rate limit',
-      parameters: { expression: '100 * 60' },
-    },
-    observation: {
-      status: 'success',
-      result: { result: 6000, expression: '100 * 60' },
-    },
-    tokens_used: 120,
-    latency_ms: 850,
-    created_at: new Date().toISOString(),
-  },
-];
-
-const mockMemories = [
-  {
-    id: '1',
-    type: 'episodic' as const,
-    content: 'User John Doe requested help with API integration on 2025-10-20. Resolved by providing SDK documentation.',
-    importance_score: 0.75,
-    access_count: 5,
-    created_at: '2025-10-20T14:30:00Z',
-    last_accessed_at: '2025-10-21T09:15:00Z',
-  },
-  {
-    id: '2',
-    type: 'semantic' as const,
-    content: 'API rate limits are 100 requests per minute for standard plans and 1000 requests per minute for enterprise plans.',
-    importance_score: 0.90,
-    access_count: 12,
-    created_at: '2025-10-15T10:00:00Z',
-    last_accessed_at: '2025-10-21T11:20:00Z',
-  },
-  {
-    id: '3',
-    type: 'procedural' as const,
-    content: 'When handling authentication errors, first check if the API key is valid, then verify user permissions.',
-    importance_score: 0.85,
-    access_count: 8,
-    created_at: '2025-10-18T16:45:00Z',
-  },
-];
+// APA integration - using real API hooks
 
 export default function AgentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [isExecuting, setIsExecuting] = useState(false);
+  const [memoryTypeFilter, setMemoryTypeFilter] = useState<string | undefined>();
 
-  // In production, fetch agent data from API
-  const agent = mockAgent;
-
-  const handleExecuteTask = async () => {
-    setIsExecuting(true);
-    try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Task executed successfully');
-    } catch (error) {
-      toast.error('Failed to execute task');
-    } finally {
-      setIsExecuting(false);
+  // Fetch agent data from API
+  const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(id!);
+  
+  // Fetch reasoning traces
+  const { data: tracesData, isLoading: tracesLoading } = useReasoningTraces(id!, undefined, {
+    enabled: activeTab === 'reasoning',
+  });
+  
+  // Fetch agent memory
+  const { data: memoryData, isLoading: memoryLoading } = useAgentMemory(
+    id!, 
+    memoryTypeFilter as 'episodic' | 'semantic' | 'procedural' | undefined, 
+    {
+      enabled: activeTab === 'memory',
     }
+  );
+  
+  // Execute agent reasoning
+  const { mutate: executeReason, isPending: isExecuting } = useAgentReason(id!);
+  
+  // Search memory
+  const { mutate: searchMemory, isPending: isSearching } = useSearchMemory(id!);
+
+  const handleExecuteTask = () => {
+    executeReason(
+      {
+        description: 'Analyze and process the current task',
+        parameters: {},
+        max_iterations: 10,
+      },
+      {
+        onSuccess: (data) => {
+          toast.success(`Task executed successfully! ${data.result.iterations} iterations completed.`);
+          // Switch to reasoning tab to see the traces
+          setActiveTab('reasoning');
+        },
+        onError: (error: any) => {
+          toast.error(error.message || 'Failed to execute task');
+        },
+      }
+    );
   };
+  
+  const handleMemorySearch = (query: string) => {
+    searchMemory(
+      { query, limit: 20 },
+      {
+        onSuccess: (data) => {
+          toast.success(`Found ${data.count} relevant memories`);
+        },
+        onError: (error: any) => {
+          toast.error('Memory search failed');
+        },
+      }
+    );
+  };
+  
+  const handleMemoryFilterType = (type: string) => {
+    const validTypes = ['episodic', 'semantic', 'procedural'];
+    setMemoryTypeFilter(type === '' || !validTypes.includes(type) ? undefined : type);
+  };
+
+  // Loading state
+  if (agentLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading agent details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (agentError || !agent) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Agent Not Found</h2>
+          <p className="text-muted-foreground mb-4">The agent you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/maestro/agents')}>Back to Agents</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -129,7 +117,7 @@ export default function AgentDetails() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{agent.name}</h1>
-            <p className="text-muted-foreground">{agent.description}</p>
+            <p className="text-muted-foreground">{agent.promptSummary || 'No description available'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -163,11 +151,11 @@ export default function AgentDetails() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Status</CardTitle>
+                <CardTitle className="text-sm font-medium">Health</CardTitle>
               </CardHeader>
               <CardContent>
-                <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
-                  {agent.status}
+                <Badge variant={agent.health === 'healthy' ? 'default' : 'secondary'}>
+                  {agent.health}
                 </Badge>
               </CardContent>
             </Card>
@@ -178,27 +166,27 @@ export default function AgentDetails() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{agent.model}</div>
-                <p className="text-xs text-muted-foreground">{agent.provider}</p>
+                <p className="text-xs text-muted-foreground">{agent.runtime}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Type</CardTitle>
+                <CardTitle className="text-sm font-medium">Runtime</CardTitle>
               </CardHeader>
               <CardContent>
                 <Badge variant="outline" className="capitalize">
-                  {agent.type.replace('_', ' ')}
+                  {agent.runtime}
                 </Badge>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Max Iterations</CardTitle>
+                <CardTitle className="text-sm font-medium">Concurrency</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{agent.max_iterations}</div>
+                <div className="text-2xl font-bold">{agent.concurrency}</div>
               </CardContent>
             </Card>
           </div>
@@ -212,28 +200,28 @@ export default function AgentDetails() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm font-medium">Temperature</span>
-                  <p className="text-2xl font-bold">{agent.temperature / 10}</p>
+                  <span className="text-sm font-medium">Environment</span>
+                  <p className="text-2xl font-bold capitalize">{agent.env}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium">Max Tokens</span>
-                  <p className="text-2xl font-bold">{agent.max_tokens.toLocaleString()}</p>
+                  <span className="text-sm font-medium">Tools</span>
+                  <p className="text-2xl font-bold">{agent.tools?.length || 0}</p>
                 </div>
               </div>
 
               <Separator />
 
               <div className="space-y-2">
-                <span className="text-sm font-medium">Capabilities</span>
+                <span className="text-sm font-medium">Autoscaling</span>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant={agent.enable_reasoning ? 'default' : 'secondary'}>
-                    Reasoning {agent.enable_reasoning ? 'Enabled' : 'Disabled'}
+                  <Badge variant="outline">
+                    Min: {agent.autoscale.min}
                   </Badge>
-                  <Badge variant={agent.enable_collaboration ? 'default' : 'secondary'}>
-                    Collaboration {agent.enable_collaboration ? 'Enabled' : 'Disabled'}
+                  <Badge variant="outline">
+                    Max: {agent.autoscale.max}
                   </Badge>
-                  <Badge variant={agent.enable_learning ? 'default' : 'secondary'}>
-                    Learning {agent.enable_learning ? 'Enabled' : 'Disabled'}
+                  <Badge variant="outline">
+                    Target CPU: {agent.autoscale.targetCpu}%
                   </Badge>
                 </div>
               </div>
@@ -243,16 +231,66 @@ export default function AgentDetails() {
 
         {/* Reasoning Tab */}
         <TabsContent value="reasoning" className="space-y-4">
-          <ReasoningTraceViewer traces={mockReasoningTraces} />
+          {tracesLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Loading reasoning traces...</span>
+            </div>
+          ) : tracesData && tracesData.traces.length > 0 ? (
+            <ReasoningTraceViewer traces={tracesData.traces} />
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center p-8">
+                <Brain className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Reasoning Traces Yet</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  Execute a task to see the agent's reasoning process
+                </p>
+                <Button onClick={handleExecuteTask} disabled={isExecuting}>
+                  {isExecuting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Executing...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Execute Task
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Memory Tab */}
         <TabsContent value="memory" className="space-y-4">
-          <AgentMemoryViewer 
-            memories={mockMemories}
-            onSearch={(query) => console.log('Search:', query)}
-            onFilterType={(type) => console.log('Filter type:', type)}
-          />
+          {memoryLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Loading agent memory...</span>
+            </div>
+          ) : memoryData && memoryData.memories.length > 0 ? (
+            <AgentMemoryViewer 
+              memories={memoryData.memories.map(m => ({
+                ...m,
+                access_count: m.access_count || 0
+              }))}
+              onSearch={handleMemorySearch}
+              onFilterType={handleMemoryFilterType}
+            />
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center p-8">
+                <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Memories Stored</h3>
+                <p className="text-muted-foreground text-center">
+                  The agent hasn't stored any memories yet. Memories will be created as the agent executes tasks.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

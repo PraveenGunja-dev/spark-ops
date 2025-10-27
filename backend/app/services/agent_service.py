@@ -2,13 +2,15 @@
 Agent Service Layer
 Business logic for agent CRUD operations
 """
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 from uuid import UUID
+from datetime import datetime, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import Agent, AgentStatus
 from app.schemas.agent import AgentCreate, AgentUpdate
+from app.services.websocket_service import WebSocketService
 
 
 class AgentService:
@@ -160,6 +162,16 @@ class AgentService:
         
         await db.commit()
         await db.refresh(agent)
+        
+        # Emit activity feed update for agent update
+        project_id = str(agent.project_id)
+        activity_data = {
+            "id": str(agent.id),
+            "name": agent.name,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await WebSocketService.emit_activity(project_id, "agent_updated", activity_data)
+        
         return agent
     
     @staticmethod
@@ -203,10 +215,28 @@ class AgentService:
         if not agent:
             return None
         
-        from datetime import datetime, timezone
+        # Store previous health status
+        previous_health = agent.health
+        
         agent.last_heartbeat = datetime.now(timezone.utc)
         agent.health = health_status
         
         await db.commit()
+        await db.refresh(agent)
+        
+        # Emit WebSocket event for agent health update if health changed
+        if previous_health != health_status:
+            project_id = str(agent.project_id)
+            await WebSocketService.emit_agent_health_update(str(agent.id), project_id, health_status)
+            
+            # Emit activity feed update
+            activity_data = {
+                "id": str(agent.id),
+                "name": agent.name,
+                "health": health_status,
+                "previous_health": previous_health,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            await WebSocketService.emit_activity(project_id, "agent_health_changed", activity_data)
         await db.refresh(agent)
         return agent
